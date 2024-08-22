@@ -2,7 +2,7 @@
 - Has docker installed on the local machine
 - Has internet connection
 
-## Installation
+# Installation
 
 1. Run docker
 2. Pull docker image
