@@ -44,15 +44,15 @@ def perform_database_query(query, values=None):
         # Commit changes
         conn.commit()
 
+        cur.close()
+        conn.close()
+
     except Exception as e:
         conn.rollback()
         print("An error has occurred: ", e)
 
-    finally:
-        if 'cur' in locals():
-            cur.close()
-        if 'conn' in locals():
-            conn.close()
+        cur.close()
+        conn.close()
 
 def get_current_timestamp():
     current_datetime = datetime.now()
