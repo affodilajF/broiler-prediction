@@ -1,0 +1,26 @@
+/* root variables */
+:root {
+    --app-grey-primary: #DEE2E6;
+    --app-white-primary: #FFFF;
+    --app-border-color: var(--app-grey-primary);
+}
+
+html, body {
+    margin: 0px;
+    padding: 0px;
+}
+
+/* sidebar */
+.main-sidebar {
+    border-right: 1px solid var(--app-border-color);
+    background-color: var(--app-white-primary);
+}
+
+.brand-image {
+    border-radius: 50%;
+}
+
+.navbar-expand .navbar-nav .nav-link {
+    padding-right: .5rem;
+    padding-left: .5rem;
+}

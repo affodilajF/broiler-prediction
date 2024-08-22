@@ -1,0 +1,112 @@
+{% extends 'Templates/Layouts/app.html' %}
+
+{% block additional_js %}
+
+<script>
+    var base_api_url = 'http://127.0.0.1:5000/api'
+    $(document).ready(function(){
+        // datatable section
+        var table = $('#table-datatable').DataTable( {
+            dom: "Blfrtip",
+            responsive: true,
+            autoWidth: false,
+            scrollX: false,
+            processing: true,
+            serverSide: false,
+            paging: true,
+            ajax: {
+                url: `${base_api_url}/get_prediction_data`,
+                dataSrc: 'response'
+            },
+            columns: [
+                { data: 'id', name: 'id', visible: false },
+                { data: 'date_created', name: 'date_created', visible: true },
+                { data: 'days', name: 'days', visible: true },
+                { data: 'temperature', name: 'temperature', visible: true },
+                { data: 'humidity', name: 'humidity', visible: true },
+                { data: 'amonia', name: 'amonia', visible: true },
+                { data: 'food', name: 'food', visible: true },
+                { data: 'drink', name: 'drink', visible: true },
+                { data: 'weight', name: 'weight', visible: true },
+                { data: 'population', name: 'population', visible: true },
+                { data: 'cage_area', name: 'cage_area', visible: true },
+                { 
+                    data: 'prediction', 
+                    name: 'prediction', 
+                    visible: true,
+                    render: function (data, type, row, meta) {
+                        if (data == 0) {
+                            var html =  `
+                                <div class="d-flex flex-column align-items-center">
+                                    <button type="button" class="btn waves-effect waves-light btn-success"><i class="ti-link"></i> Alive</button>
+                                </div>`;
+                        } else {
+                            var html =  `
+                                <div class="d-flex flex-column align-items-center">
+                                    <button type="button" class="btn waves-effect waves-light btn-danger"><i class="ti-link"></i> Dead</button>
+                                </div>`;
+                        }
+                        return html;
+                    }
+                },
+                { data: 'date_data_origin', name: 'date_data_origin', visible: true }
+            ],
+            columnDefs: [
+                { width: '18%', targets: [1,12] },
+            ]
+        });
+    });
+</script>
+
+{% endblock %}
+
+{% block content %}
+    <!-- dashboard -->
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <div class="fs-3">Dashboard</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- contents -->
+    <div class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <!-- datatables -->
+                 <div class="col">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"> <i class="fas fa-chart-pie me-1"></i> Prediction Data </h3>
+                        </div>
+
+                        <div class="card-body">
+                            <table id="table-datatable" class="table table-striped" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th id="table-predict-id" class="text-center">Id</th>
+                                        <th id="table-predict-datetime" class="text-center">Datetime</th>
+                                        <th id="table-predict-days" class="text-center">Days</th>
+                                        <th id="table-predict-temprature" class="text-center">Temprature</th>
+                                        <th id="table-predict-humidity" class="text-center">Humidity</th>
+                                        <th id="table-predict-amonia" class="text-center">Amonia</th>
+                                        <th id="table-predict-food" class="text-center">Food</th>
+                                        <th id="table-predict-drink" class="text-center">Drink</th>
+                                        <th id="table-predict-weight" class="text-center">Weight</th>
+                                        <th id="table-predict-pop" class="text-center">Population</th>
+                                        <th id="table-predict-cage" class="text-center">Cage Area</th>
+                                        <th id="table-predict-predict" class="text-center">Prediction</th>
+                                        <th id="table-predict-date" class="text-center">Date Prediction</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

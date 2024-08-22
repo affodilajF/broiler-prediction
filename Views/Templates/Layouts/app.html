@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broiler - Admin Page</title>
+    
+    {% include 'Templates/Scripts/css.html' %}
+
+    {% block additional_css %}
+
+    {% endblock %}
+
+    {% include 'Templates/Scripts/js-start.html' %}
+</head>
+<body class="layout-fixed">
+    <div class="wrapper">
+        {% include 'Templates/Layouts/navbar.html' %}
+
+        {% include 'Templates/Layouts/sidebar.html' %}
+    
+        <main class="content-wrapper">
+            {% block content %}
+            
+            {% endblock %}
+        </main>
+
+        {% include 'Templates/Layouts/footer.html' %}
+    </div>
+
+    {% include 'Templates/Scripts/js-end.html' %}
+
+    {% block additional_js %}
+
+    {% endblock %}
+</body>
+</html>
