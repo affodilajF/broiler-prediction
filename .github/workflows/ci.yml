@@ -21,15 +21,20 @@ jobs:
       with:
         python-version: '3.10.12'
 
-    - name: Install Dependencies
+    - name: Create virtual environment
       run: |
-        virtualenv venv
-        . venv/bin/activate
+        python -m venv venv
+        ls -la venv
+
+    - name: Activate virtual environment
+      run: |
+        source venv/bin/activate
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run Tests
+    - name: Run tests
       run: |
-        . venv/bin/activate
+        source venv/bin/activate
         pytest
 
   dockerize:
