@@ -49,9 +49,10 @@ def perform_database_query(query, values=None):
         print("An error has occurred: ", e)
 
     finally:
-        # close connection
-        cur.close()
-        conn.close()
+        if 'cur' in locals():
+            cur.close()
+        if 'conn' in locals():
+            conn.close()
 
 def get_current_timestamp():
     current_datetime = datetime.now()
