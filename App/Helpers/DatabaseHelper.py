@@ -44,13 +44,12 @@ def perform_database_query(query, values=None):
         # Commit changes
         conn.commit()
 
-        cur.close()
-        conn.close()
-
     except Exception as e:
         conn.rollback()
         print("An error has occurred: ", e)
 
+    finally:
+        # close connection
         cur.close()
         conn.close()
 
