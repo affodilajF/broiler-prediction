@@ -24,12 +24,13 @@ jobs:
     - name: Install Dependencies
       run: |
         python -m venv venv
-        . venv/Scripts/activate
+        ls venv
+        . venv/bin/activate
         pip install -r requirements.txt
 
     - name: Run Tests
       run: |
-        . venv/Scripts/activate
+        . venv/bin/activate
         pytest
 
   dockerize:
