@@ -1,0 +1,131 @@
+{
+	"info": {
+		"_postman_id": "ed01e72a-85bc-48f7-a7f6-a7c383dcd792",
+		"name": "BROILER - Prediction API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26431154"
+	},
+	"item": [
+		{
+			"name": "API",
+			"item": [
+				{
+					"name": "Check API",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_path}}:{{port}}/{{api_prefix}}/",
+							"host": [
+								"{{base_path}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"{{api_prefix}}",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Prediction Data",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_path}}:{{port}}/{{api_prefix}}/get_prediction_data",
+							"host": [
+								"{{base_path}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"{{api_prefix}}",
+								"get_prediction_data"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Predict",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"data\": {\r\n        \"Datetime\":\"2023-01-05 09:05:00\",\r\n        \"Hari Ke-\":1,\r\n        \"Suhu\":25.5,\r\n        \"Kelembaban\":87.0,\r\n        \"Amoniak\":2.46,\r\n        \"Pakan\":150,\r\n        \"Minum\":346,\r\n        \"Bobot\":56,\r\n        \"Populasi\":8000,\r\n        \"Luas Kandang\":336\r\n    }\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_path}}/{{api_prefix}}/predict",
+							"host": [
+								"{{base_path}}"
+							],
+							"path": [
+								"{{api_prefix}}",
+								"predict"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_path",
+			"value": "https://broiler-prediction-production.up.railway.app/",
+			"type": "string"
+		},
+		{
+			"key": "port",
+			"value": "5000",
+			"type": "string"
+		},
+		{
+			"key": "api_prefix",
+			"value": "api",
+			"type": "string"
+		}
+	]
+}
