@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from flask import Blueprint, render_template
 
 # load env file
-load_dotenv()
+load_dotenv(override=True)
 
 # initiate blueprint
 web = Blueprint('web', __name__)

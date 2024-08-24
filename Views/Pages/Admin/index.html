@@ -4,7 +4,6 @@
 
 <script>
     var base_api_url = "{{ base_url_api }}";
-    console.log(base_api_url);
     
     $(document).ready(function(){
         // datatable section
@@ -40,12 +39,12 @@
                         if (data == 0) {
                             var html =  `
                                 <div class="d-flex flex-column align-items-center">
-                                    <button type="button" class="btn waves-effect waves-light btn-success"><i class="ti-link"></i> Alive</button>
+                                    <button type="button" class="btn waves-effect waves-light btn-success"><i class="ti-link"></i> Normal</button>
                                 </div>`;
                         } else {
                             var html =  `
                                 <div class="d-flex flex-column align-items-center">
-                                    <button type="button" class="btn waves-effect waves-light btn-danger"><i class="ti-link"></i> Dead</button>
+                                    <button type="button" class="btn waves-effect waves-light btn-danger"><i class="ti-link"></i> Abnormal</button>
                                 </div>`;
                         }
                         return html;

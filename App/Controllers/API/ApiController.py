@@ -101,8 +101,8 @@ def get_session_type(hour):
     
 def determine_prediction_result(prediction):
     if int(prediction) == 0:
-        return 'alive'
+        return 'normal'
     elif int(prediction) == 1:
-        return 'dead'
+        return 'abnormal'
     else:
         return 'cannot predict'

@@ -6,7 +6,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 # load env file
-load_dotenv()
+load_dotenv(override=True)
 
 def connect():
     username = os.getenv('database_user')
