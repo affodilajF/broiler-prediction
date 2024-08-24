@@ -3,7 +3,9 @@
 {% block additional_js %}
 
 <script>
-    var base_api_url = 'http://127.0.0.1:5000/api'
+    var base_api_url = "{{ base_url_api }}";
+    console.log(base_api_url);
+    
     $(document).ready(function(){
         // datatable section
         var table = $('#table-datatable').DataTable( {
