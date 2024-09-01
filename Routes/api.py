@@ -45,3 +45,23 @@ def prediction_data():
             'messages': 'success'
         }
     )
+
+@api.route('/login', methods=['POST'])
+def login():
+    try:
+        response = ''
+        return jsonify(
+            {
+                'response': response,
+                'status': 200,
+                'messages': 'success'
+            }
+        )
+    except Exception as e:
+        return jsonify(
+            {
+                'response': str(e),
+                'status': '200 OK',
+                'messages': 'Something is Wrong!'
+            }
+        )

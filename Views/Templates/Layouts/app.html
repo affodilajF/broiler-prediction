@@ -14,12 +14,12 @@
     {% include 'Templates/Scripts/js-start.html' %}
 </head>
 <body class="layout-fixed">
-    <div class="wrapper">
+    <div id="body-wrapper" class="wrapper">
         {% include 'Templates/Layouts/navbar.html' %}
 
         {% include 'Templates/Layouts/sidebar.html' %}
     
-        <main class="content-wrapper">
+        <main id="main-content" class="content-wrapper">
             {% block content %}
             
             {% endblock %}

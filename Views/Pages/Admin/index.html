@@ -3,7 +3,52 @@
 {% block additional_js %}
 
 <script>
-    var base_api_url = "{{ base_url_api }}";
+    var base_api_url = "{{ session.get('base_url_api') }}";
+
+    function check_temp(curr_days) {
+        let temperature_standard = {
+            1: array_range(32, 34),
+            2: array_range(32, 28),
+            3: array_range(28, 26),
+            4: array_range(26, 24),
+            5: array_range(18, 24),
+            6: array_range(18, 24),
+        };
+
+        if (temperature_standard.hasOwnProperty(curr_days)) {
+            return `<i class="fas fa-angle-double-up me-2"></i> Increase temperature between ${temperature_standard[curr_days][0]} - ${temperature_standard[curr_days][temperature_standard[curr_days].length-1]}`;
+        } else {
+            return `<i class="fas fa-exclamation-triangle me-2"></i> Can't make reccomendation`
+        }
+    }
+
+    function check_humidity(curr_humidity) {
+        if (curr_humidity > 70) {
+            return '<i class="fas fa-angle-double-down me-2"></i> Humidity too high, reduce humidity to no less than 60';
+        } else if (curr_humidity < 60) {
+            return '<i class="fas fa-angle-double-up me-2"></i> Increase Humidity to no more than 70';
+        } else if (curr_humidity > 60 && curr_humidity <=70) {
+            return '<i class="fas fa-check-double me-2"></i> Normal Humidity'
+        } else {
+            return `<i class="fas fa-exclamation-triangle me-2"></i> Can't make reccomendation`
+        }
+    }
+
+    function check_amonia(cur_amonia) {
+        if (cur_amonia ===  20) {
+            return '<i class="fas fa-check-double me-2"></i> Normal Amonia'
+        } else if (cur_amonia < 20) {
+            return '<i class="fas fa-angle-double-up me-2"></i> Amonia too low, Increase Amonia to around 20';
+        } else if (cur_amonia >= 25 && cur_amonia <= 200) {
+            return '<i class="fas fa-angle-double-down me-2"></i> Amonia too high, Reduce Amonia to around 20';
+        } else {
+            return `<i class="fas fa-exclamation-triangle me-2"></i> Can't make reccomendation`
+        }
+    }
+
+    function array_range(start, end) {
+        return Array.from({length: end - start + 1}, (_, index) => start + index);
+    }
     
     $(document).ready(function(){
         // datatable section
@@ -23,9 +68,42 @@
                 { data: 'id', name: 'id', visible: false },
                 { data: 'date_created', name: 'date_created', visible: true },
                 { data: 'days', name: 'days', visible: true },
-                { data: 'temperature', name: 'temperature', visible: true },
-                { data: 'humidity', name: 'humidity', visible: true },
-                { data: 'amonia', name: 'amonia', visible: true },
+                { 
+                    data: 'temperature', 
+                    name: 'temperature', 
+                    visible: true,
+                    render: function (data, type, row, meta) {
+                        if (parseInt(row.prediction) === 1) {
+                            return `<span class="danger-text">${data}</span>`;
+                        } 
+
+                        return data
+                    }
+                },
+                { 
+                    data: 'humidity', 
+                    name: 'humidity', 
+                    visible: true,
+                    render: function (data, type, row, meta) {
+                        if (parseInt(row.prediction) === 1) {
+                            return `<span class="danger-text">${data}</span>`;
+                        } 
+
+                        return data
+                    }
+                },
+                { 
+                    data: 'amonia', 
+                    name: 'amonia', 
+                    visible: true,
+                    render: function (data, type, row, meta) {
+                        if (parseInt(row.prediction) === 1) {
+                            return `<span class="danger-text">${data}</span>`;
+                        } 
+
+                        return data
+                    }
+                },
                 { data: 'food', name: 'food', visible: true },
                 { data: 'drink', name: 'drink', visible: true },
                 { data: 'weight', name: 'weight', visible: true },
@@ -39,12 +117,20 @@
                         if (data == 0) {
                             var html =  `
                                 <div class="d-flex flex-column align-items-center">
-                                    <button type="button" class="btn waves-effect waves-light btn-success"><i class="ti-link"></i> Normal</button>
+                                    <button type="button" class="btn waves-effect waves-light btn-success w-100"><i class="fas fa-check me-1"></i> Normal</button>
                                 </div>`;
                         } else {
                             var html =  `
-                                <div class="d-flex flex-column align-items-center">
-                                    <button type="button" class="btn waves-effect waves-light btn-danger"><i class="ti-link"></i> Abnormal</button>
+                                <div class="btn-group">
+                                    <button type="button" class="btn waves-effect waves-light btn-danger dropdown-toggle w-100" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-exclamation-triangle me-1"></i> Abnormal
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item header" href="#">Recommendation</a></li>
+                                        <li><a class="dropdown-item danger" href="#">${check_temp(parseInt(row.days))}</a></li>
+                                        <li><a class="dropdown-item danger" href="#">${check_humidity(row.humidity)}</a></li>
+                                        <li><a class="dropdown-item danger" href="#">${check_amonia(parseFloat(row.amonia))}</a></li>
+                                    </ul>
                                 </div>`;
                         }
                         return html;
@@ -54,6 +140,7 @@
             ],
             columnDefs: [
                 { width: '18%', targets: [1,12] },
+                { width: '10%', targets: [11] }
             ]
         });
     });
@@ -91,14 +178,14 @@
                                         <th id="table-predict-id" class="text-center">Id</th>
                                         <th id="table-predict-datetime" class="text-center">Datetime</th>
                                         <th id="table-predict-days" class="text-center">Days</th>
-                                        <th id="table-predict-temprature" class="text-center">Temprature</th>
+                                        <th id="table-predict-temprature" class="text-center">Temp.</th>
                                         <th id="table-predict-humidity" class="text-center">Humidity</th>
                                         <th id="table-predict-amonia" class="text-center">Amonia</th>
                                         <th id="table-predict-food" class="text-center">Food</th>
                                         <th id="table-predict-drink" class="text-center">Drink</th>
                                         <th id="table-predict-weight" class="text-center">Weight</th>
-                                        <th id="table-predict-pop" class="text-center">Population</th>
-                                        <th id="table-predict-cage" class="text-center">Cage Area</th>
+                                        <th id="table-predict-pop" class="text-center">Pop.</th>
+                                        <th id="table-predict-cage" class="text-center">Cage</th>
                                         <th id="table-predict-predict" class="text-center">Prediction</th>
                                         <th id="table-predict-date" class="text-center">Date Prediction</th>
                                     </tr>

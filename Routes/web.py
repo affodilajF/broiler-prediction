@@ -1,16 +1,32 @@
-# import libraries
-import os
+# append root path
+import os, sys
+sys.path.append(os.getcwd())
 
-from dotenv import load_dotenv
-from flask import Blueprint, render_template
+# import controllers
+from App.Controllers.Auth import AuthController
+from App.Controllers import DashboardController
 
-# load env file
-load_dotenv(override=True)
+# import flask
+from flask import Blueprint, request
 
 # initiate blueprint
 web = Blueprint('web', __name__)
 
 # routes
 @web.route('/')
-def main():
-    return render_template('Pages/Admin/index.html', base_url_api=os.getenv('server_ip_address'))
+def index(): 
+    return AuthController.index()
+
+@web.route('/dashboard')
+def dashboard():
+    return DashboardController.index()
+
+@web.route('/auth', methods=['GET', 'POST'])
+def auth():
+    if request.method == 'POST':
+        AuthController.authenticate_user(request.form.get('email'), request.form.get('password'))
+
+    return AuthController.index()
+
+
+    

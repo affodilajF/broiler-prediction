@@ -11,9 +11,9 @@ html, body {
 }
 
 /* sidebar */
-.main-sidebar {
+#sidebar-container.main-sidebar {
     border-right: 1px solid var(--app-border-color);
-    background-color: var(--app-white-primary);
+    background-color: var(--app-white-primary) !important;
 }
 
 .brand-image {
@@ -23,4 +23,24 @@ html, body {
 .navbar-expand .navbar-nav .nav-link {
     padding-right: .5rem;
     padding-left: .5rem;
+}
+
+#navbar-container.main-header {
+    background-color: var(--app-white-primary) !important;
+}
+
+.danger-text {
+    color: #bb2d3b;
+    font-weight: 600;
+}
+
+.dropdown-item.danger {
+    color: #bb2d3b;
+    pointer-events: none;
+    font-weight: 400;
+}
+
+.dropdown-item.header {
+    pointer-events: none;
+    font-weight: 600;
 }

@@ -1,5 +1,5 @@
 # append root path
-import os, sys, uuid
+import os, sys, uuid, requests
 sys.path.append(os.getcwd())
 
 # import local libraries
@@ -9,10 +9,14 @@ from App.Helpers import DirectoryHelper, DatabaseHelper
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
+from dotenv import load_dotenv
 
 import numpy as np
 import pandas as pd
 import joblib
+
+# load env file
+load_dotenv(override=True)
 
 def store_prediction(prediction_result, data):
     data_query = """insert into projects."broiler_prediction"."prediction_result"(id, days, temperature, humidity, amonia, food, drink, weight, population, cage_area, prediction, date_data_origin, date_created) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
@@ -57,20 +61,8 @@ def prform_prediction(data):
     # choose the required columns
     df_X = dataFrame.drop(['Datetime','Hari Ke-'], axis=1)
 
-    # perform encoding
-    cats = df_X.select_dtypes(include=['object', 'bool']).columns
-    cat_features = list(cats.values)
-
-    le = LabelEncoder()
-    for i in cat_features:
-        df_X[i] = le.fit_transform(df_X[i])
-
     # convert value to a float
     X = df_X.astype(float).values
-
-    # perform scaling
-    scaler = StandardScaler().fit(X)
-    X = scaler.transform(X)
 
     # load model
     model_path = DirectoryHelper.get_model_dir('rf_timestamp')
@@ -106,3 +98,19 @@ def determine_prediction_result(prediction):
         return 'abnormal'
     else:
         return 'cannot predict'
+
+def get_xsrf_token():
+    request = requests.get(f'{os.getenv("server_external_api_ip_address")}/csrf-cookie')
+
+    if request.status_code == 200:
+        return {
+            'status': '200 OK',
+            'massage': 'Success',
+            'response': request.cookies.get('XSRF-TOKEN')
+        }
+    else:
+        return {
+            'status': request.status_code,
+            'massage': 'Semething is wrong!',
+            'response': ''
+        }
