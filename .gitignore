@@ -1,4 +1,7 @@
 /App/Helpers/__pycache__
+/App/Controllers/__pycache__
+/App/Controllers/*/__pycache__
+/App/Middleware/__pycache__
 /Routes/__pycache__
 
 /venv
