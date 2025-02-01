@@ -3,9 +3,7 @@
 {% block additional_js %}
 
 <script>
-    var base_api_url = "{{ session.get('base_url_api') }}";
-
-    console.log(base_api_url);
+    var base_api_url = "{{ base_url }}";
 
     function check_temp(curr_days) {
         let temperature_standard = {
@@ -56,9 +54,12 @@
         // datatable section
         var table = $('#table-datatable').DataTable( {
             dom: "Blfrtip",
-            responsive: true,
+            ordering: true,
+            responsive: false,
             autoWidth: false,
-            scrollX: false,
+            searching: false,
+            scrollX: true,
+            scrollY: false,
             processing: true,
             serverSide: false,
             paging: true,
@@ -178,7 +179,7 @@
                         </div>
 
                         <div class="card-body">
-                            <table id="table-datatable" class="table table-striped" style="width:100%">
+                            <table id="table-datatable" class="table table-striped h-100" style="width:100%">
                                 <thead>
                                     <tr>
                                         <th id="table-predict-id" class="text-center">Id</th>

@@ -13,7 +13,7 @@ load_dotenv(override=True)
 
 def index():
     if AuthMiddleware.check_xsrf_token():
-        return render_template('Pages/Admin/index.html')
+        return render_template('Pages/Admin/index.html', base_url = os.getenv('server_ip_address'))
     
     return redirect(url_for('web.auth'))
     

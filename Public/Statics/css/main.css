@@ -44,3 +44,20 @@ html, body {
     pointer-events: none;
     font-weight: 600;
 }
+
+.dt-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.content-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.content,
+.container-fluid,
+.container-fluid > .row {
+    height: 100%;
+}

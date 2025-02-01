@@ -11,7 +11,7 @@ from flask_cors import CORS
 
 # initiate blueprint
 api = Blueprint('api', __name__)
-CORS(api, resources={r"/*": {"origins": "http://127.0.0.1:5000"}})
+CORS(api, supports_credentials=True)
 
 @api.route('/')
 def main():
