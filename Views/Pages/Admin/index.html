@@ -5,6 +5,8 @@
 <script>
     var base_api_url = "{{ session.get('base_url_api') }}";
 
+    console.log(base_api_url);
+
     function check_temp(curr_days) {
         let temperature_standard = {
             1: array_range(32, 34),
