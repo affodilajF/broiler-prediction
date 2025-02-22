@@ -36,11 +36,11 @@
 
     function check_amonia(cur_amonia) {
         if (cur_amonia ===  20) {
-            return '<i class="fas fa-check-double me-2"></i> Normal Amonia'
+            return '<i class="fas fa-check-double me-2"></i> Light Amonia amount, consider reducing it below 20'
         } else if (cur_amonia < 20) {
-            return '<i class="fas fa-angle-double-up me-2"></i> Amonia too low, Increase Amonia to around 20';
+            return '<i class="fas fa-check me-2"></i> Normal Amonia amonunt!';
         } else if (cur_amonia >= 25 && cur_amonia <= 200) {
-            return '<i class="fas fa-angle-double-down me-2"></i> Amonia too high, Reduce Amonia to around 20';
+            return '<i class="fas fa-angle-double-down me-2"></i> Amonia amount is TOO HIGH! Immediate action is needed!';
         } else {
             return `<i class="fas fa-exclamation-triangle me-2"></i> Can't make reccomendation`
         }
