@@ -33,3 +33,17 @@ jobs:
       run: |
         docker build --no-cache -t ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest .
         docker push ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest
+
+    - name: Update Container in the Server
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_IP_ADDRESS }}
+        username: ${{ secrets.SERVER_DEPLOYMENT_USER }}
+        key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+        port: ${{ secrets.SERVER_SSH_PORT }}
+        script: |
+          docker pull ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest
+          docker stop broiler || true
+          docker rm broiler || true
+          docker run -d -p 5000:5000 -v /home/environments/.env-broiler:/broiler-model-api/.env -e PYTHONUNBUFFERED=1 --name broiler ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest
+          docker image prune -f || true
