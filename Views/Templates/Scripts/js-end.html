@@ -6,9 +6,15 @@
 
 <!-- app js -->
 <script>
-    let base_url_api = 'http://127.0.0.1:5000/api';
+    const base_url_api = 'http://127.0.0.1:5000/api';
+    const current_url  = window.location.pathname;
 
     $(document).ready( function () {
-
+        
+        $(".nav-link").each(function () {
+            if ($(this).attr("href") === current_url) {
+                $(this).addClass("active");
+            }
+        });
     });
 </script>

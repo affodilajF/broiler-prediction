@@ -16,4 +16,10 @@ def index():
         return render_template('Pages/Admin/index.html', base_url = os.getenv('server_ip_address'))
     
     return redirect(url_for('web.auth'))
+
+def index_2():
+    if AuthMiddleware.check_xsrf_token():
+        return render_template('Pages/Admin/index_2.html', base_url = os.getenv('server_ip_address'))
+    
+    return redirect(url_for('web.auth'))
     

@@ -21,6 +21,10 @@ def index():
 def dashboard():
     return DashboardController.index()
 
+@web.route('/forecasting')
+def forecasting():
+    return DashboardController.index_2()
+
 @web.route('/auth', methods=['GET', 'POST'])
 def auth():
     if request.method == 'POST':

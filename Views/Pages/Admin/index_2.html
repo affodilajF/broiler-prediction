@@ -64,7 +64,7 @@
             serverSide: false,
             paging: true,
             ajax: {
-                url: `${base_api_url}/get_prediction_data`,
+                url: `${base_api_url}/get_forecasting_data`,
                 xhrFields: {
                     withCredentials: true
                 },
@@ -73,8 +73,7 @@
             },
             columns: [
                 { data: 'id', name: 'id', visible: false },
-                { data: 'date_created', name: 'date_created', visible: true },
-                { data: 'days', name: 'days', visible: true },
+                { data: 'date_data_origin', name: 'date_data_origin', visible: true },
                 { 
                     data: 'temperature', 
                     name: 'temperature', 
@@ -105,24 +104,23 @@
                 { data: 'population', name: 'population', visible: true },
                 { data: 'cage_area', name: 'cage_area', visible: true },
                 { 
-                    data: 'prediction', 
-                    name: 'prediction', 
+                    data: 'class', 
+                    name: 'class', 
                     visible: true,
                     render: function (data, type, row, meta) {
-                        if (data == 0) {
+                        if (data === "Normal") {
                             var html =  `
                                 <div class="d-flex flex-column align-items-center">
-                                    <button type="button" class="btn waves-effect waves-light btn-success w-100"><i class="fas fa-check me-1"></i> Normal</button>
+                                    <button type="button" class="btn waves-effect waves-light btn-success w-100"><i class="fas fa-check me-1"></i> ${data}</button>
                                 </div>`;
                         } else {
                             var html =  `
-                                <div class="btn-group">
+                                <div class="btn-group w-100">
                                     <button type="button" class="btn waves-effect waves-light btn-danger dropdown-toggle w-100" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fas fa-exclamation-triangle me-1"></i> Abnormal
+                                        <i class="fas fa-exclamation-triangle me-1"></i> ${data}
                                     </button>
                                     <ul class="dropdown-menu">
                                         <li><a class="dropdown-item header" href="#">Recommendation</a></li>
-                                        <li><a class="dropdown-item danger" href="#">${check_temp(parseInt(row.days))}</a></li>
                                         <li><a class="dropdown-item danger" href="#">${check_humidity(row.humidity)}</a></li>
                                         <li><a class="dropdown-item danger" href="#">${check_amonia(parseFloat(row.amonia))}</a></li>
                                     </ul>
@@ -131,14 +129,8 @@
                         return html;
                     }
                 },
-                { 
-                    data: 'date_data_origin', 
-                    name: 'date_data_origin', 
-                    visible: true,
-                    render: function (data, type, row, meta) {
-                        return data.split('.')[0];
-                    }
-                },
+                { data: 'prediction', name: 'prediction', visible: true },
+                { data: 'date_created', name: 'date_created', visible: true }
             ],
             columnDefs: [
                 { width: '18%', targets: [1,12] },
@@ -159,7 +151,7 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <div class="fs-3">Dashboard Classification</div>
+                    <div class="fs-3">Dashboard Forecasting</div>
                 </div>
             </div>
         </div>
@@ -173,7 +165,7 @@
                  <div class="col">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title"> <i class="fas fa-chart-pie me-1"></i> Prediction Data (<b><small>Class</small></b>) </h3>
+                            <h3 class="card-title"> <i class="fas fa-chart-pie me-1"></i> Prediction Data (<b><small>Death Est in 1 Hour from Current Date</small></b>) </h3>
                         </div>
 
                         <div class="card-body">
@@ -182,7 +174,6 @@
                                     <tr>
                                         <th id="table-predict-id" class="text-center">Id</th>
                                         <th id="table-predict-datetime" class="text-center">Datetime</th>
-                                        <th id="table-predict-days" class="text-center">Days</th>
                                         <th id="table-predict-temprature" class="text-center">Temp.</th>
                                         <th id="table-predict-humidity" class="text-center">Humidity</th>
                                         <th id="table-predict-amonia" class="text-center">Amonia</th>
@@ -191,7 +182,8 @@
                                         <th id="table-predict-weight" class="text-center">Weight</th>
                                         <th id="table-predict-pop" class="text-center">Pop.</th>
                                         <th id="table-predict-cage" class="text-center">Cage</th>
-                                        <th id="table-predict-predict" class="text-center">Prediction</th>
+                                        <th id="table-predict-class" class="text-center">Class</th>
+                                        <th id="table-predict-predict" class="text-center">Death Est.</th>
                                         <th id="table-predict-date" class="text-center">Date Prediction</th>
                                     </tr>
                                 </thead>

@@ -25,8 +25,29 @@ def main():
 
 @api.route('/predict', methods=['POST'])
 def predict():
+    try:
+        data = request.get_json()
+        response = ApiController.perform_prediction(data['data'])
+        return jsonify(
+            {
+                'response': response,
+                'status': 200,
+                'messages': 'success'
+            }
+        )
+    except Exception as e:
+        return jsonify(
+            {
+                'response': str(e),
+                'status': 500,
+                'messages': 'Something is Wrong!'
+            }
+        )
+
+@api.route('/forecast', methods=['POST'])
+def forecast():
     data = request.get_json()
-    response = ApiController.prform_prediction(data['data'])
+    response = ApiController.perform_forecasting(data['data'])
     return jsonify(
         {
             'response': response,
@@ -35,16 +56,64 @@ def predict():
         }
     )
 
+    try:
+        data = request.get_json()
+        response = ApiController.perform_forecasting(data['data'])
+        return jsonify(
+            {
+                'response': response,
+                'status': 200,
+                'messages': 'success'
+            }
+        )
+    except Exception as e:
+        return jsonify(
+            {
+                'response': str(e),
+                'status': 500,
+                'messages': 'Something is Wrong!'
+            }
+        )
+
 @api.route('/get_prediction_data', methods=['GET'])
 def prediction_data():
-    response = ApiController.get_prediction_data()
-    return jsonify(
-        {
-            'response': response,
-            'status': 200,
-            'messages': 'success'
-        }
-    )
+    try:
+        response = ApiController.get_prediction_data()
+        return jsonify(
+            {
+                'response': response,
+                'status': 200,
+                'messages': 'success'
+            }
+        )
+    except Exception as e:
+        return jsonify(
+            {
+                'response': str(e),
+                'status': 500,
+                'messages': 'Something is Wrong!'
+            }
+        )
+
+@api.route('/get_forecasting_data', methods=['GET'])
+def forecasting_data():
+    try:
+        response = ApiController.get_forecasting_data()
+        return jsonify(
+            {
+                'response': response,
+                'status': 200,
+                'messages': 'success'
+            }
+        )
+    except Exception as e:
+        return jsonify(
+            {
+                'response': str(e),
+                'status': 500,
+                'messages': 'Something is Wrong!'
+            }
+        )
 
 @api.route('/login', methods=['POST'])
 def login():
@@ -61,7 +130,7 @@ def login():
         return jsonify(
             {
                 'response': str(e),
-                'status': '200 OK',
+                'status': 500,
                 'messages': 'Something is Wrong!'
             }
         )

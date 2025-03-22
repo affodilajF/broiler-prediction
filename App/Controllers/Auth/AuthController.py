@@ -19,6 +19,14 @@ def index():
     
     return render_template('Pages/Authentication/index.html')
 
+def index_2():
+    session['base_url_api'] = os.getenv('server_ip_address')
+
+    if AuthMiddleware.check_xsrf_token():
+        return redirect(url_for('web.forecasting'))
+    
+    return render_template('Pages/Authentication/index.html')
+
 def authenticate_user(email, password):
     authenticate = requests.post(f'{os.getenv("server_external_api_ip_address")}/login', json={'email': email, 'password': password})
     if authenticate.status_code == 200:

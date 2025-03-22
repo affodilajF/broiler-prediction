@@ -19,3 +19,21 @@ create table if not exists "broiler_prediction"."prediction_result" (
 	
 	primary key(id)
 );
+
+create table if not exists "broiler_prediction"."forecasting_result" (
+	id uuid,
+	temperature numeric not null,
+	humidity numeric not null,
+	amonia numeric not null,
+	food numeric not null,
+	drink numeric not null,
+	weight numeric not null,
+	population integer not null,
+	cage_area numeric not null,
+	class varchar(12) not null,
+	prediction numeric(1) not null,
+	date_data_origin timestamp not null,
+	date_created timestamp not null,
+	
+	primary key(id)
+);
