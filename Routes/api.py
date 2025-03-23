@@ -46,16 +46,6 @@ def predict():
 
 @api.route('/forecast', methods=['POST'])
 def forecast():
-    data = request.get_json()
-    response = ApiController.perform_forecasting(data['data'])
-    return jsonify(
-        {
-            'response': response,
-            'status': 200,
-            'messages': 'success'
-        }
-    )
-
     try:
         data = request.get_json()
         response = ApiController.perform_forecasting(data['data'])
