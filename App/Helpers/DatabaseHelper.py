@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 # load env file
 load_dotenv(override=True)
 
-def connect():
+def connect_cockroach():
     username = os.getenv('database_user')
     password = os.getenv('database_user_password')
 
@@ -22,6 +22,21 @@ def connect():
         with psycopg2.connect(db_url) as conn:
             # print('Connected to the PostgreSQL server')
             return conn
+    except (psycopg2.DatabaseError, Exception) as error:
+        print(error)
+
+def connect():
+    try:
+        conn = psycopg2.connect(
+            dbname   = os.getenv('server_db_name'),
+            user     = os.getenv('server_db_user'),
+            password = os.getenv('server_db_pass'),
+            host     = os.getenv('server_db_host'),
+            port     = os.getenv('server_db_port')
+        )
+
+        return conn
+
     except (psycopg2.DatabaseError, Exception) as error:
         print(error)
 
