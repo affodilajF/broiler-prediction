@@ -3,6 +3,7 @@
 {% block additional_js %}
 
 <script>
+    var cache = null;
     var base_api_url = "{{ base_url }}";
 
     function check_temp(curr_days) {
