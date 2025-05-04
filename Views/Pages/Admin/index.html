@@ -38,7 +38,7 @@
         if (cur_amonia ===  20) {
             return '<i class="fas fa-check-double me-2"></i> Light Amonia amount, consider reducing it below 20'
         } else if (cur_amonia < 20) {
-            return '<i class="fas fa-check me-2"></i> Normal Amonia amonunt!';
+            return '<i class="fas fa-check me-2"></i> Normal Amonia amount!';
         } else if (cur_amonia >= 25 && cur_amonia <= 200) {
             return '<i class="fas fa-angle-double-down me-2"></i> Amonia amount is TOO HIGH! Immediate action is needed!';
         } else {
@@ -70,7 +70,7 @@
             },
             columns: [
                 { data: 'id', name: 'id', visible: false },
-                { data: 'date_created', name: 'date_created', visible: true },
+                { data: 'date_data_origin', name: 'date_data_origin', visible: true },
                 { data: 'days', name: 'days', visible: true },
                 { 
                     data: 'temperature', 
@@ -129,8 +129,8 @@
                     }
                 },
                 { 
-                    data: 'date_data_origin', 
-                    name: 'date_data_origin', 
+                    data: 'date_created', 
+                    name: 'date_created', 
                     visible: true,
                     render: function (data, type, row, meta) {
                         return data.split('.')[0];
