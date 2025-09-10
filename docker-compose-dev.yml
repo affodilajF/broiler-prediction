@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  cockroachdb:
+    image: cockroachdb/cockroach:v24.1.0
+    container_name: cockroachdb
+    command: start-single-node --insecure
+    ports:
+      - "26257:26257" # SQL
+      - "8080:8080" # Web UI CockroachDB
+    volumes:
+      - cockroach-data:/cockroach/cockroach-data
+      - ./Database/Scripts:/app/migrations # mount migrations
+
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: cloudbeaver
+    ports:
+      - "8978:8978"
+    volumes:
+      - cloudbeaver-data:/opt/cloudbeaver/workspace
+    depends_on:
+      - cockroachdb
+
+  backend:
+    build:
+      context: .
+      dockerfile: dockerfile.dev
+    volumes:
+      - .:/broiler-model-api # mount kode lokal
+    ports:
+      - "5000:5000"
+    environment:
+      - .env.dev
+    depends_on:
+      - cockroachdb
+
+volumes:
+  cockroach-data:
+  cloudbeaver-data:
