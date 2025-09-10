@@ -8,7 +8,8 @@ RUN apt-get update && \
     gcc && \
     apt-get clean
 
-RUN curl --create-dirs -o $HOME/.postgresql/root.crt 'https://cockroachlabs.cloud/clusters/10bfb27b-c589-4634-a372-5895f36ade2c/cert'
+# RUN curl --create-dirs -o $HOME/.postgresql/root.crt 'https://cockroachlabs.cloud/clusters/10bfb27b-c589-4634-a372-5895f36ade2c/cert'
+RUN curl --create-dirs -o $HOME/.postgresql/root.crt 'https://cockroachlabs.cloud/clusters/b424de88-b421-4c84-8d67-6cb31d335a72/cert'
 
 WORKDIR /broiler-model-api
 COPY requirements.txt /requirements.txt
