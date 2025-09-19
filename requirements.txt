@@ -23,3 +23,5 @@ tzdata==2024.1
 uuid==1.30
 Werkzeug==3.0.3
 requests==2.32.3
+paho-mqtt==1.6.1
+firebase-admin==6.1.0
