@@ -1,15 +1,14 @@
 # append root path
 import os, sys, requests
+from datetime import datetime
 sys.path.append(os.getcwd())
-
-# import middleware
 from App.Middleware import AuthMiddleware
 
 from flask import session, render_template, redirect, url_for
-from dotenv import load_dotenv
+from App.Helpers import DirectoryHelper, DatabaseHelper
+from App.Helpers.env_loader import load_environment
+load_environment()
 
-# load env file
-load_dotenv(override=True)
 
 def index():
     session['base_url_api'] = os.getenv('server_ip_address')
@@ -33,3 +32,23 @@ def authenticate_user(email, password):
         return True
     
     return False
+
+# register user to database based on firebase_id
+def register(firebase_id, name, province, city, phone, email):
+    data_query = f"""
+        INSERT INTO {os.getenv('DATABASE_NAME')}."broiler_app"."users"
+        (firebase_id, name, province, city, phone, email, created_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s);
+    """
+    data_values = (
+        firebase_id,
+        name,
+        province,
+        city,
+        phone,
+        email,
+        datetime.now()
+    )
+
+    DatabaseHelper.perform_database_query(data_query, data_values)
+    return True
