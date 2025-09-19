@@ -24,22 +24,22 @@ from scipy.stats import kurtosis, skew
 from datetime import datetime
 import pytz
 
-# load env file
-load_dotenv(override=True)
+from App.Helpers.env_loader import load_environment
+load_environment()
 
 def store_prediction(prediction_result: int, data: dict) -> None:
-    data_query = f"""insert into {os.getenv('server_db_name')}."broiler_prediction"."prediction_result"(id, days, temperature, humidity, amonia, food, drink, weight, population, cage_area, prediction, date_data_origin, date_created) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
+    data_query = f"""insert into {os.getenv('DATABASE_NAME')}."broiler_prediction"."prediction_result"(id, days, temperature, humidity, amonia, food, drink, weight, population, cage_area, prediction, date_data_origin, date_created) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
     data_values = (str(uuid.uuid4()), data['Hari Ke-'], data['Suhu'], data['Kelembaban'], data['Amoniak'], data['Pakan'], data['Minum'], data['Bobot'], data['Populasi'], data['Luas Kandang'], prediction_result, data['Datetime'], DatabaseHelper.get_current_timestamp())
     DatabaseHelper.perform_database_query(data_query, data_values)
 
 
 def store_forecasting(prediction_result: int, data, date_created: datetime) -> None:
-    data_query = f"""insert into {os.getenv('server_db_name')}."broiler_prediction"."forecasting_result"(id, temperature, humidity, amonia, food, drink, weight, population, cage_area, class, prediction, date_data_origin, date_created) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
+    data_query = f"""insert into {os.getenv('DATABASE_NAME')}."broiler_prediction"."forecasting_result"(id, temperature, humidity, amonia, food, drink, weight, population, cage_area, class, prediction, date_data_origin, date_created) values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
     data_values = (str(uuid.uuid4()), data['temp'], data['hum'], data['ammo'], data['Pakan'], data['Minum'], data['Bobot'], data['Populasi'], data['Luas Kandang'], data['Class'], prediction_result, data['datetime'], date_created)
     DatabaseHelper.perform_database_query(data_query, data_values)
 
 def get_prediction_data():
-    data_query = f"""select * from {os.getenv('server_db_name')}."broiler_prediction"."prediction_result";"""
+    data_query = f"""select * from {os.getenv('DATABASE_NAME')}."broiler_prediction"."prediction_result";"""
     array_data = DatabaseHelper.perform_database_query(data_query)
 
     data = list()
@@ -63,7 +63,7 @@ def get_prediction_data():
     return data
 
 def get_forecasting_data():
-    data_query = f"""select * from {os.getenv('server_db_name')}."broiler_prediction"."forecasting_result";"""
+    data_query = f"""select * from {os.getenv('DATABASE_NAME')}."broiler_prediction"."forecasting_result";"""
     array_data = DatabaseHelper.perform_database_query(data_query)
 
     data = list()
