@@ -1,59 +1,145 @@
-
 import os, sys, uuid, requests
 
 from App.Helpers import DatabaseHelper
+from App.Helpers.DateHelper import utc_to_offset_iso, offset_to_utc
 from datetime import datetime
 sys.path.append(os.getcwd())
 
 import logging
 logging.basicConfig(level=logging.INFO)  
 
+import os
+import uuid
 
-def add_cage(user_id, initial_population, cage_area):
-    cage_id = str(uuid.uuid4())
-    status = 'non-active'  
-    date_activated = None
+from App.Helpers.DBExceptionsMapper import map_db_exception, BadRequestError
+import psycopg2
 
+
+def add_cage(firebase_id, initial_population, cage_area, device_id):
+    conn = DatabaseHelper.connect()
+    try:
+        cur = conn.cursor()
+
+        # insert device_id ke tabel devices (kalau sudah ada, abaikan)
+        cur.execute(f"""
+            INSERT INTO {os.getenv('DATABASE_NAME')}."broiler_app"."devices" (device_id)
+            VALUES (%s)
+            ON CONFLICT (device_id) DO NOTHING;
+        """, (device_id,))
+
+        cage_id = str(uuid.uuid4())
+        status = 'non-active'
+
+        # insert ke tabel cages
+        cur.execute(f"""
+            INSERT INTO {os.getenv('DATABASE_NAME')}."broiler_app"."cages"
+            (id, firebase_id, initial_population, current_population, cage_area, status, device_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s);
+        """, (
+            cage_id,
+            firebase_id,
+            initial_population,
+            initial_population,  # current_population awal = initial_population
+            cage_area,
+            status,
+            device_id
+        ))
+
+        conn.commit()
+
+        return {
+            "cage_id": cage_id,
+            "initial_population": initial_population,
+            "current_population": initial_population,
+            "cage_area": cage_area,
+            "status": status,
+            "device_id": device_id,
+        }
+
+    except Exception as e:
+        conn.rollback()
+        raise map_db_exception(e)
+
+    finally:
+        conn.close()
+
+
+
+def activate_cage(cage_id, date_activated_str, offset_str="+00:00"):
+    try:
+        date_activated_utc = offset_to_utc(date_activated_str, offset_str)
+    except Exception as e:
+        # error parsing date dari FE → Bad Request
+        raise BadRequestError(f"Invalid date format: {date_activated_str}")
+
+    conn = DatabaseHelper.connect()
+    try:
+        cur = conn.cursor()
+
+        # update cages status
+        cur.execute(f"""
+            UPDATE {os.getenv('DATABASE_NAME')}."broiler_app"."cages"
+            SET status = %s
+            WHERE id = %s;
+        """, ('active', cage_id))
+
+        # insert ke cage_activation_detail (UTC)
+        cur.execute(f"""
+            INSERT INTO {os.getenv('DATABASE_NAME')}."broiler_app"."cage_activation_detail"
+            (cage_id, date_activated)
+            VALUES (%s, %s);
+        """, (cage_id, date_activated_utc))
+
+        conn.commit()
+
+        return {
+            "cage_id": cage_id,
+            "date_activated": date_activated_utc.isoformat(),
+            "status": "active"
+        }
+
+    except Exception as e:
+        conn.rollback()
+        raise map_db_exception(e)
+
+    finally:
+        conn.close()
+
+
+def get_cage_data(firebase_id, offset_str="+00:00"):
     data_query = f"""
-        insert into {os.getenv('DATABASE_NAME')}."broiler_app"."cages"
-        (id, user_id, initial_population, current_population, cage_area, status, date_activated)
-        values (%s, %s, %s, %s, %s, %s);
+        SELECT 
+            c.id,
+            c.initial_population,
+            c.current_population,
+            c.cage_area,
+            c.status,
+            cad.date_activated,
+            c.device_id,
+            c.created_at
+        FROM {os.getenv('DATABASE_NAME')}."broiler_app"."cages" c
+        LEFT JOIN LATERAL (
+            SELECT cad.date_activated
+            FROM {os.getenv('DATABASE_NAME')}."broiler_app"."cage_activation_detail" cad
+            WHERE cad.cage_id = c.id
+            ORDER BY cad.created_at DESC
+            LIMIT 1
+        ) cad ON TRUE
+        WHERE c.firebase_id = %s
+        ORDER BY c.created_at DESC;
     """
-    data_values = (cage_id, user_id, initial_population, initial_population, cage_area, status, date_activated)
-    DatabaseHelper.perform_database_query(data_query, data_values)
+    array_data = DatabaseHelper.perform_database_query_v2(data_query, (firebase_id,)) or []
 
-    return True
-
-
-def activate_cage(cage_id):
-    status = 'active'
-    date_activated = datetime.now() 
-
-    data_query = f"""
-        update {os.getenv('DATABASE_NAME')}."broiler_app"."cages"
-        set status = %s,
-            date_activated = %s
-        where id = %s;
-    """
-    data_values = (status, date_activated, cage_id)
-    DatabaseHelper.perform_database_query(data_query, data_values)
-
-    return True
-
-def get_cage_data(user_id):
-    data_query = f"""select * from {os.getenv('DATABASE_NAME')}."broiler_app"."cages" where user_id = %s;"""
-    array_data = DatabaseHelper.perform_database_query_v2(data_query, (user_id,)) or []
-
-    logging.info(f"Running query: {data_query} with params: {user_id}")
-    logging.info(f"Query result: {array_data}")
     return [
         {
             "id": row[0],
-            "initial_population": row[2],
-            "current_population": row[3],
-            "cage_area": row[4],
-            "status": row[5],
-            "date_activated": str(row[6])
+            "initial_population": row[1],
+            "current_population": row[2],
+            "cage_area": row[3],
+            "status": row[4],
+            "date_activated":  utc_to_offset_iso(row[5], offset_str) if row[5] else None,
+            "device_id": row[6],
+            "created_at": utc_to_offset_iso(row[7], offset_str) if row[7] else None
         }
         for row in array_data
     ]
