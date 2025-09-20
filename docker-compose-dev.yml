@@ -10,7 +10,7 @@ services:
       - "8080:8080" # Web UI CockroachDB
     volumes:
       - cockroach-data:/cockroach/cockroach-data
-      - ./Database/Scripts:/app/migrations # mount migrations
+      - ./Database:/broiler-model-api/Database
 
   cloudbeaver:
     image: dbeaver/cloudbeaver:latest

@@ -38,10 +38,10 @@ else:
 # Firebase Admin init
 # ---------------------
 
-firebase_cred_path = os.getenv("FIREBASE_CREDENTIAL_PATH", "firebase-service-account.json")
+cred_path = os.getenv("FIREBASE_CRED", "firebase-credentials.json")
 
 if not firebase_admin._apps:
-    cred = credentials.Certificate(firebase_cred_path)
+    cred = credentials.Certificate(cred_path)
     firebase_admin.initialize_app(cred)
 
 # ---------------------
