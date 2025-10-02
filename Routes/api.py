@@ -167,6 +167,7 @@ def add_cage():
             cage_area = request.json.get('cage_area'),
             device_id = request.json.get('device_id'),
             initial_population = request.json.get('initial_population'),
+            cage_name= request.json.get('cage_name')
         )
         return jsonify({
             "response": response,
@@ -209,9 +210,6 @@ def activate_cage_endpoint():
 
     except Exception as e:
         return jsonify({"response": str(e), "messages": "Something is Wrong!"}), 500
-
-
-    
     
 # NOT DONE YET
 @api.route('/get-daily-activities/<cage_id>', methods=['GET'])

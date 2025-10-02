@@ -1,6 +1,4 @@
--- new 
 drop schema if exists "broiler_app" cascade;
-
 create schema "broiler_app";
 
 create table if not exists "broiler_app"."users" (
@@ -14,12 +12,15 @@ create table if not exists "broiler_app"."users" (
 );
 
 CREATE TABLE IF NOT EXISTS "broiler_app"."devices" (
-    device_id VARCHAR PRIMARY KEY
+    device_id VARCHAR PRIMARY KEY,
+    status VARCHAR,
+    CONSTRAINT chk_device_status CHECK (status IN ('online', 'offline'))
 );
 
 create table if not exists "broiler_app"."cages" (
     id VARCHAR PRIMARY KEY,
     firebase_id VARCHAR NOT NULL,
+    cage_name VARCHAR NOT NULL,
     cage_area FLOAT,
     device_id VARCHAR NOT NULL,
     initial_population INTEGER,
@@ -39,6 +40,15 @@ create table if not exists "broiler_app"."cage_activation_detail" (
     CONSTRAINT fk_activation_cage FOREIGN KEY (cage_id) REFERENCES "broiler_app"."cages"(id)
 );
 
-
-
-
+create table if not exists "broiler_app"."daily_activity" (
+    id varchar primary key,
+    cage_id varchar not null,
+    food float,
+    drink float,
+	weight float,
+    death float,
+    current_population integer,
+    day integer not null,
+    created_at timestamp not null default now(),
+    constraint fk_activity_cage foreign key (cage_id) references "broiler_app"."cages"(id)
+);

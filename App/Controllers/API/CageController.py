@@ -15,17 +15,30 @@ from App.Helpers.DBExceptionsMapper import map_db_exception, BadRequestError
 import psycopg2
 
 
-def add_cage(firebase_id, initial_population, cage_area, device_id):
+def add_cage(firebase_id, initial_population, cage_area, device_id, cage_name):
+    logging.info("cekcek2")
+    required_fields = {
+        "firebase_id": firebase_id,
+        "initial_population": initial_population,
+        "cage_area": cage_area,
+        "device_id": device_id,
+        "cage_name": cage_name
+    }
+
+    missing = [key for key, value in required_fields.items() if not value]
+    if missing:
+        raise BadRequestError(f"Missing required fields: {', '.join(missing)}")
+    
     conn = DatabaseHelper.connect()
     try:
         cur = conn.cursor()
 
         # insert device_id ke tabel devices (kalau sudah ada, abaikan)
         cur.execute(f"""
-            INSERT INTO {os.getenv('DATABASE_NAME')}."broiler_app"."devices" (device_id)
-            VALUES (%s)
+            INSERT INTO {os.getenv('DATABASE_NAME')}."broiler_app"."devices" (device_id, status)
+            VALUES (%s, %s)
             ON CONFLICT (device_id) DO NOTHING;
-        """, (device_id,))
+        """, (device_id, "offline"))
 
         cage_id = str(uuid.uuid4())
         status = 'non-active'
@@ -33,22 +46,24 @@ def add_cage(firebase_id, initial_population, cage_area, device_id):
         # insert ke tabel cages
         cur.execute(f"""
             INSERT INTO {os.getenv('DATABASE_NAME')}."broiler_app"."cages"
-            (id, firebase_id, initial_population, current_population, cage_area, status, device_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s);
+            (id, cage_name, firebase_id, initial_population, current_population, cage_area, status, device_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """, (
             cage_id,
+            cage_name,
             firebase_id,
             initial_population,
             initial_population,  # current_population awal = initial_population
             cage_area,
             status,
-            device_id
+            device_id,
         ))
 
         conn.commit()
 
         return {
             "cage_id": cage_id,
+            "cage_name": cage_name,
             "initial_population": initial_population,
             "current_population": initial_population,
             "cage_area": cage_area,
@@ -116,7 +131,8 @@ def get_cage_data(firebase_id, offset_str="+00:00"):
             c.status,
             cad.date_activated,
             c.device_id,
-            c.created_at
+            c.created_at,
+            c.cage_name
         FROM {os.getenv('DATABASE_NAME')}."broiler_app"."cages" c
         LEFT JOIN LATERAL (
             SELECT cad.date_activated
@@ -139,7 +155,8 @@ def get_cage_data(firebase_id, offset_str="+00:00"):
             "status": row[4],
             "date_activated":  utc_to_offset_iso(row[5], offset_str) if row[5] else None,
             "device_id": row[6],
-            "created_at": utc_to_offset_iso(row[7], offset_str) if row[7] else None
+            "created_at": utc_to_offset_iso(row[7], offset_str) if row[7] else None,
+            "cage_name": row[8],
         }
         for row in array_data
     ]
