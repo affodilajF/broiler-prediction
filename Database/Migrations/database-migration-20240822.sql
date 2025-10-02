@@ -43,12 +43,11 @@ create table if not exists "broiler_app"."cage_activation_detail" (
 create table if not exists "broiler_app"."daily_activity" (
     id varchar primary key,
     cage_id varchar not null,
+    date timestamp,
     food float,
     drink float,
 	weight float,
     death float,
-    current_population integer,
-    day integer not null,
     created_at timestamp not null default now(),
     constraint fk_activity_cage foreign key (cage_id) references "broiler_app"."cages"(id)
 );
