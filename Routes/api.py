@@ -213,39 +213,45 @@ def activate_cage_endpoint():
     
 # NOT DONE YET
 @api.route('/get-daily-activities/<cage_id>', methods=['GET'])
+@verify_token
 def get_daily_activities(cage_id):
     try:
-        response = DailyActivityController.get_daily_activities(cage_id=cage_id)
-        return jsonify({
-            "response": response,
-            "messages": "success"
-        }), 200  
-    except Exception as e:
-        return jsonify({
-            "response": str(e),
-            "messages": "Something is Wrong!"
-        }), 500
-    
-@api.route('/add-daily-activity', methods=['POST'])
-def add_daily_activity():
-    try:
-        response = DailyActivityController.add_daily_activity(
-            cage_id = request.json.get('cage_id'),
-            food = request.json.get('food'),
-            drink = request.json.get('drink'),
-            weight = request.json.get('weight'),
-            death = request.json.get('death'),
-            day = request.json.get('day')
+        response = DailyActivityController.get_daily_activities(
+            cage_id=cage_id,
+            offset_str=request.headers.get("X-User-Offset", "+00:00")
         )
         return jsonify({
             "response": response,
             "messages": "success"
         }), 200  
+    except APIError as e:
+        return jsonify(e.to_dict()), e.status_code
+
     except Exception as e:
+        return jsonify({"response": str(e), "messages": "Something is Wrong!"}), 500
+    
+@api.route('/add-daily-activity', methods=['POST'])
+@verify_token
+def add_daily_activity():
+    try:
+        response = DailyActivityController.add_daily_activity(
+            cage_id = request.json.get('cage_id'),
+            dailyactivity_date= request.json.get('date'),
+            food = request.json.get('food'),
+            drink = request.json.get('drink'),
+            weight = request.json.get('weight'),
+            death = request.json.get('death'),
+            offset_str=request.headers.get("X-User-Offset", "+00:00")
+        )
         return jsonify({
-            "response": str(e),
-            "messages": "Something is Wrong!"
-        }), 500  
+            "response": response,
+            "messages": "success"
+        }), 200  
+    except APIError as e:
+        return jsonify(e.to_dict()), e.status_code
+
+    except Exception as e:
+        return jsonify({"response": str(e), "messages": "Something is Wrong!"}), 500
     
 
     
