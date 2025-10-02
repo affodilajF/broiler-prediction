@@ -6,6 +6,8 @@ DB_ERROR_MAPPING = {
 }
 
 def map_db_exception(exc):
+    if isinstance(exc, APIError):
+        return exc 
     """
     Cek type psycopg2 exception, kembalikan APIError yang sesuai.
     Jika tidak dikenali, kembalikan generic APIError
