@@ -131,6 +131,7 @@ def get_cage_data(firebase_id, offset_str="+00:00"):
             c.status,
             cad.date_activated,
             c.device_id,
+            d.status AS device_status,
             c.created_at,
             c.cage_name
         FROM {os.getenv('DATABASE_NAME')}."broiler_app"."cages" c
@@ -141,6 +142,8 @@ def get_cage_data(firebase_id, offset_str="+00:00"):
             ORDER BY cad.created_at DESC
             LIMIT 1
         ) cad ON TRUE
+        LEFT JOIN {os.getenv('DATABASE_NAME')}."broiler_app"."devices" d 
+            ON d.device_id = c.device_id
         WHERE c.firebase_id = %s
         ORDER BY c.created_at DESC;
     """
@@ -155,10 +158,12 @@ def get_cage_data(firebase_id, offset_str="+00:00"):
             "status": row[4],
             "date_activated":  utc_to_offset_iso(row[5], offset_str) if row[5] else None,
             "device_id": row[6],
-            "created_at": utc_to_offset_iso(row[7], offset_str) if row[7] else None,
-            "cage_name": row[8],
+            "device_status": row[7],  # <- status dari tabel devices
+            "created_at": utc_to_offset_iso(row[8], offset_str) if row[8] else None,
+            "cage_name": row[9],
         }
         for row in array_data
     ]
+
 
 
