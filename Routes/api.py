@@ -156,6 +156,17 @@ def register():
             "messages": "Something is Wrong!"
         }), 500  
     
+@api.route('/get-profile', methods=['GET'])
+@verify_token
+def get_user_profile():
+    try:
+        firebase_id = request.user['uid']
+        offset_str = request.headers.get("X-User-Offset", "+00:00")
+        response = AuthController.get_user_profile(firebase_id, offset_str)
+
+        return jsonify({"response": response, "messages": "success"}), 200
+    except Exception as e:
+        return jsonify({"response": str(e), "messages": "Something is Wrong!"}), 500    
     
 @api.route('/add-cage', methods=['POST'])
 @verify_token
@@ -211,7 +222,6 @@ def activate_cage_endpoint():
     except Exception as e:
         return jsonify({"response": str(e), "messages": "Something is Wrong!"}), 500
     
-# NOT DONE YET
 @api.route('/get-daily-activities/<cage_id>', methods=['GET'])
 @verify_token
 def get_daily_activities(cage_id):
@@ -253,5 +263,4 @@ def add_daily_activity():
     except Exception as e:
         return jsonify({"response": str(e), "messages": "Something is Wrong!"}), 500
     
-
-    
+ 
