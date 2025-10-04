@@ -17,6 +17,17 @@ CREATE TABLE IF NOT EXISTS "broiler_app"."devices" (
     CONSTRAINT chk_device_status CHECK (status IN ('online', 'offline'))
 );
 
+CREATE TABLE IF NOT EXISTS "broiler_app"."device_data" (
+    id SERIAL PRIMARY KEY,
+    device_id VARCHAR NOT NULL,
+    temperature FLOAT, 
+    humidity FLOAT, 
+    ammonia FLOAT,
+    timestamp INTEGER,
+
+    CONSTRAINT fk_data_devices FOREIGN KEY (device_id) REFERENCES "broiler_app"."devices"(device_id)
+);
+
 create table if not exists "broiler_app"."cages" (
     id VARCHAR PRIMARY KEY,
     firebase_id VARCHAR NOT NULL,
