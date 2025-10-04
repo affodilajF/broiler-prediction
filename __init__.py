@@ -44,6 +44,14 @@ if not firebase_admin._apps:
     cred = credentials.Certificate(cred_path)
     firebase_admin.initialize_app(cred)
 
+
+# ---------------------
+# MQTT
+# ---------------------
+from Mqtt.MqttClient import mqtt_client
+mqtt_client.init_app(app=True)
+mqtt_client.subscribe(os.getenv('IOT_MQTT_TOPIC', 'iot/broiler/#'))
+
 # ---------------------
 # Register blueprints
 # ---------------------
