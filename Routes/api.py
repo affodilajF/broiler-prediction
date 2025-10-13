@@ -5,6 +5,7 @@ from App.Controllers.Auth import AuthController
 sys.path.append(os.getcwd())
 
 # import local libraries
+# from App.Controllers.API import ApiController, CageController, DailyActivityController, IoTController
 from App.Controllers.API import ApiController, CageController, DailyActivityController
 
 # get all required libraries
@@ -251,7 +252,8 @@ def add_daily_activity():
             drink = request.json.get('drink'),
             weight = request.json.get('weight'),
             death = request.json.get('death'),
-            offset_str=request.headers.get("X-User-Offset", "+00:00")
+            offset_str=request.headers.get("X-User-Offset", "+00:00"),
+            notes= request.json.get('notes')
         )
         return jsonify({
             "response": response,
@@ -264,3 +266,42 @@ def add_daily_activity():
         return jsonify({"response": str(e), "messages": "Something is Wrong!"}), 500
     
  
+# @api.route('/check-model-pred', methods=['POST'])
+# def check_model():
+#     try:
+#         suhu = float(request.json.get('suhu'))
+#         kelembaban = float(request.json.get('kelembaban'))
+#         amoniak = float(request.json.get('amoniak'))
+#         unix_ts = int(request.json.get('unix_ts'))
+
+#         result = IoTController.perform_prediction(suhu, kelembaban, amoniak, unix_ts)
+
+#         return jsonify({
+#             'status': 'success',
+#             'prediction': result
+#         })
+
+#     except Exception as e:
+#         return jsonify({
+#             'status': 'error',
+#             'message': str(e)
+#         }), 400
+    
+
+# @api.route('/run-model-now', methods=['GET'])
+# def run_model_now():
+#     try:
+#         result = IoTController.perform_prediction_and_store(
+#             offset_str=request.headers.get("X-User-Offset", "+00:00")
+#         )
+
+#         return jsonify({
+#             'status': 'success',
+#             'message': 'Model run successfully' if result else 'Model run failed'
+#         })
+
+#     except Exception as e:
+#         return jsonify({
+#             'status': 'error',
+#             'message': str(e)
+#         }), 400

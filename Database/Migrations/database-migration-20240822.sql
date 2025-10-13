@@ -60,5 +60,6 @@ create table if not exists "broiler_app"."daily_activity" (
 	weight float,
     death float,
     created_at timestamp not null default now(),
+    notes text,
     constraint fk_activity_cage foreign key (cage_id) references "broiler_app"."cages"(id)
 );

@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 
 def get_daily_activities(cage_id, offset_str):
     query = f"""
-    SELECT id, cage_id, date, food, drink, weight, death, created_at
+    SELECT id, cage_id, date, food, drink, weight, death, created_at, notes
     FROM {os.getenv('DATABASE_NAME')}."broiler_app"."daily_activity"
     WHERE cage_id = %s;
     """
@@ -26,13 +26,14 @@ def get_daily_activities(cage_id, offset_str):
             "weight": row[5],
             "death" : row[6],
             "created_at": utc_to_offset_iso(row[7], offset_str) if row[7] else None,
+            "notes": row[8]
         }
         for row in rows
     ]
 
 
     
-def add_daily_activity(cage_id, dailyactivity_date, food, drink, weight, death, offset_str):
+def add_daily_activity(cage_id, dailyactivity_date, food, drink, weight, death, offset_str, notes=None):
     conn = DatabaseHelper.connect()
     try:
         cur = conn.cursor()
@@ -102,9 +103,9 @@ def add_daily_activity(cage_id, dailyactivity_date, food, drink, weight, death, 
         # insert daily_activity
         cur.execute(f"""
             insert into {os.getenv('DATABASE_NAME')}."broiler_app"."daily_activity"
-            (id, cage_id, date, food, drink, weight, death)
-            values (%s, %s, %s, %s, %s, %s, %s)
-        """, (str(uuid.uuid4()), cage_id, date_utc, food, drink, weight, death))
+            (id, cage_id, date, food, drink, weight, death, notes)
+            values (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (str(uuid.uuid4()), cage_id, date_utc, food, drink, weight, death, notes))
 
         # commit transaksi
         conn.commit()
