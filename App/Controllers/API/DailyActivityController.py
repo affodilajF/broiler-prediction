@@ -114,7 +114,8 @@ def add_daily_activity(cage_id, dailyactivity_date, food, drink, weight, death, 
             "date": dailyactivity_date, 
             "food": food,
             "weight": weight, 
-            "death": death
+            "death": death, 
+            "notes": notes
         }
     except Exception as e:
         conn.rollback()
