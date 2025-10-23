@@ -1,21 +1,25 @@
 
 import datetime
+import json
 import os, sys, uuid, requests
 
 from App.Helpers import DatabaseHelper
-from App.Helpers.DateHelper import utc_to_offset_iso, offset_to_utc, local_to_offset_iso, now_with_offset_iso_dt
+from App.Helpers.DateHelper import get_today_range_utc, get_today_utc, utc_to_offset_iso, offset_to_utc, local_to_offset_iso, now_with_offset_iso_dt
 from App.Helpers.DBExceptionsMapper import map_db_exception, BadRequestError
 from datetime import datetime, timezone
 sys.path.append(os.getcwd())
 
-import logging
-logging.basicConfig(level=logging.INFO)  
+from App.Helpers import DirectoryHelper, DatabaseHelper
+import joblib
+import pandas as pd
+import sklearn
+from Mqtt.MqttClient import be_notif, mqtt_client
 
-    # unix_ts = payload['timestamp']
-    # dt_utc = datetime.datetime.utcfromtimestamp(unix_ts) 
+import logging
+logging.basicConfig(level=logging.INFO) 
+
 
 def insert_device_status(payload):
-    
     device_id = payload['device_id']
     status = payload['status']
 
@@ -26,7 +30,9 @@ def insert_device_status(payload):
             INSERT INTO {os.getenv('DATABASE_NAME')}."broiler_app"."devices" (device_id, status)
             VALUES (%s, %s)
             ON CONFLICT (device_id)
-            DO UPDATE SET status = EXCLUDED.status;
+            DO UPDATE 
+                SET status = EXCLUDED.status,
+                    last_updated_at = NOW();
         """, (device_id, status))
 
         conn.commit()
@@ -38,12 +44,13 @@ def insert_device_status(payload):
         conn.close()
 
 def insert_device_data(payload):
-    
     device_id = payload['device_id']
     temp = payload['temperature']
     hum = payload['humidity']
     ammonia = payload['ammonia']
     unix_ts = payload['timestamp']
+    iso_str = datetime.fromtimestamp(unix_ts, tz=timezone.utc).isoformat()
+    offset = payload['offset']
 
     conn = DatabaseHelper.connect()
     try:
@@ -55,20 +62,22 @@ def insert_device_data(payload):
             ON CONFLICT (device_id) DO NOTHING;
         """, (device_id, "online"))
 
-        # # insert ke tabel device_data
+        # insert ke tabel device_data
         cur.execute(f"""
             INSERT INTO {os.getenv('DATABASE_NAME')}."broiler_app"."device_data"
-            (device_id, temperature, humidity, ammonia, timestamp)
-            VALUES (%s, %s, %s, %s, %s);
+            (device_id, temperature, humidity, ammonia, timestamp, zone_offset)
+            VALUES (%s, %s, %s, %s, %s, %s);
         """, (
             device_id,
             temp,
             hum,
             ammonia,
-            unix_ts
+            iso_str, 
+            offset
         ))
 
         conn.commit()
+        logging.info(f"✅ Device data inserted successfully for device {device_id} {ammonia} {hum} {temp}.")
 
     except Exception as e:
         conn.rollback()
@@ -77,4 +86,341 @@ def insert_device_data(payload):
     finally:
         conn.close()
 
+
+def perform_prediction_and_store(offset_str, testing_is_normal_prediction):
+    # ambil tanggal hari ini (UTC)
+    start_today_utc, end_today_utc =  get_today_range_utc(offset_str)
+    logging.info(f"P start date (UTC): {start_today_utc}")
+    logging.info(f"P end date (UTC): {end_today_utc}")    
+
+    conn = DatabaseHelper.connect()
+    try:
+        # join tabel cages dan daily_activity untuk tanggal hari ini (UTC)
+        cur = conn.cursor()
+        cur.execute(f"""
+            SELECT 
+                c.id AS cage_id, 
+                c.cage_name, 
+                c.current_population,
+                c.device_id,
+                c.status,
+                c.cage_area,
+                da.food, 
+                da.drink, 
+                da.weight, 
+                da.death, 
+                da.date
+            FROM {os.getenv('DATABASE_NAME')}."broiler_app"."cages" c
+            LEFT JOIN {os.getenv('DATABASE_NAME')}."broiler_app"."daily_activity" da
+                ON c.id = da.cage_id AND da.date BETWEEN %s AND %s
+            WHERE c.status = 'active'
+        """, (start_today_utc, end_today_utc))
+
+
+
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]  # otomatis dapat nama kolom
+
+        for row in rows:
+            row_dict = dict(zip(columns, row))  # ubah row jadi dict
+
+                        # kalo offline -> failed
+            device_status = get_device_status(row_dict['device_id'])
+            if device_status != 'online':
+                logging.info(f"SKIPPING {row_dict['cage_id']} due to device offline.")
+                store_failed_prediction(row_dict, 2) 
+                continue  
+
+            if row_dict['food'] is None and row_dict['drink'] is None and row_dict['weight'] is None:
+                logging.info(f"SKIPPING {row_dict['cage_id']} due to missing daily activity data.")
+                store_failed_prediction(row_dict, 1) 
+                continue  
+
+            # perform prediction untuk setiap row
+            temp, hum, ammonia, ts, zone_offset = get_device_data(row_dict['device_id'])
+            logging.info(f"Device data for cage {row_dict['cage_id']}: Temp={temp}, Hum={hum}, Ammonia={ammonia}, ts={ts}, offset={zone_offset}")
+
+            prediction_result, session = perform_prediction(
+                row_dict, temp, hum, ammonia, ts, zone_offset, testing_is_normal_prediction)
+            
+            logging.info(f"Prediction result for cage {row_dict['cage_id']}: {prediction_result}, session: {session}")
+        
+            store_successful_prediction(row_dict, prediction_result, temp, hum, ammonia, ts, zone_offset, session)
+
+    except Exception as e:
+        conn.rollback()
+        return False
+
+    finally:
+        conn.close()
+
+    return True
+
+def store_successful_prediction(data:dict, prediction_result: str, temp, hum, ammonia, ts, zone_offset, session):
+    conn = DatabaseHelper.connect()
+    try:
+        logging.info(f"WOIIIIII Storing successful prediction for cage {data['cage_id']}")
+        cur = conn.cursor()
+        broiler_prediction_id = str(uuid.uuid4())
+        data_query = f"""insert into {os.getenv('DATABASE_NAME')}."broiler_app"."broiler_predictions"
+            (id, cage_id, prediction_status, error) values(%s, %s, %s, %s)"""
+        cur.execute(data_query, (
+            broiler_prediction_id,
+            data['cage_id'],
+            "success", 
+            None
+        ))
+        logging.info("✅ Broiler prediction inserted successfully.")
+        logging.info(prediction_result)
+
+        data_query = f"""
+            INSERT INTO {os.getenv('DATABASE_NAME')}."broiler_app"."broiler_prediction_detail"
+            (id, device_id, device_timestamp, device_zone_offset, broiler_prediction_id, 
+            prediction_result, humidity, ammo, temperature, food, drink, weight, 
+            current_population, cage_area, session)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        cur.execute(data_query, (
+                str(uuid.uuid4()),
+                data['device_id'],
+                ts,
+                zone_offset,
+                broiler_prediction_id,
+                prediction_result,
+                hum,
+                ammonia,
+                temp,
+                data['food'],
+                data['drink'],
+                data['weight'],
+                data['current_population'],
+                data['cage_area'],
+                session
+            ))
+
+        # database notifikasi
+        if prediction_result == 'abnormal' or prediction_result == 'cannot predict':
+            cur.execute("""
+                SELECT firebase_id
+                FROM "broiler_app"."cages"
+                WHERE id = %s
+            """, (data['cage_id'],))
+
+            result = [row[0] for row in cur.fetchall()]  # list semua firebase_id
+
+            for user_firebase_id in result:
+                logging.info(f"User firebase_id: {user_firebase_id}")
+                # insert ke log_notification
+                cur.execute(f"""
+                    insert into {os.getenv('DATABASE_NAME')}."broiler_app"."log_notifications"
+                        (id, cage_id, cage_name, firebase_id, broiler_prediction_id, read_status, prediction_result)
+                    values(%s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    str(uuid.uuid4()),
+                    data['cage_id'],
+                    data['cage_name'],
+                    user_firebase_id,
+                    broiler_prediction_id,
+                    False,
+                    prediction_result
+                ))
+
+                # publish mqtt notification 
+                logging.info(f"0000000 Publishing MQTT notification to {user_firebase_id}")
+                be_notif_topic = be_notif.replace("{user_id}", user_firebase_id) 
+                payload = {
+                    "cage_name": data['cage_name'],
+                    "prediction_result": prediction_result,
+                }
+                mqtt_client.publish(be_notif_topic, json.dumps(payload), qos=1, retain=False)
+
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        return False
+
+    finally:
+        conn.close()
+
+
+def store_failed_prediction(data:dict, error: int):
+    ## error mapping 
+    # 1 -> no daily activity data
+    # 2 -> device offline
+    conn = DatabaseHelper.connect()
+    logging.info(f"storing cage {data['cage_id']} due to missing daily activity data.")
+    try:
+        cur = conn.cursor()
+        broiler_prediction_id = str(uuid.uuid4())
+        data_query = f"""insert into {os.getenv('DATABASE_NAME')}."broiler_app"."broiler_predictions"
+            (id, cage_id, prediction_status,error) values(%s, %s, %s, %s)"""
+        cur.execute(data_query, (
+            broiler_prediction_id,
+            data['cage_id'],
+            "failed",
+            error,
+        ))
+
+        conn.commit()
+        logging.info("✅ Log notification inserted successfully.")
+
+    except Exception as e:
+        conn.rollback()
+        return False
+
+    finally:
+        conn.close()
+
+def get_device_status(device_id):
+    conn = DatabaseHelper.connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(f"""
+            SELECT status
+            FROM {os.getenv('DATABASE_NAME')}."broiler_app"."devices"
+            WHERE device_id = %s;
+        """, (device_id,))
+
+        row = cur.fetchone()
+        if row:
+            return row[0]  # langsung return nilainya, bukan nama kolom
+        else:
+            return None
+
+    except Exception as e:
+        logging.error(f"Error fetching device status: {e}")
+        return None
+
+    finally:
+        conn.close()
+
+def get_device_data(device_id):
+    conn = DatabaseHelper.connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(f"""
+            SELECT temperature, humidity, ammonia, timestamp, zone_offset
+            FROM {os.getenv('DATABASE_NAME')}."broiler_app"."device_data"
+            WHERE device_id = %s
+            ORDER BY timestamp DESC
+            LIMIT 1;
+        """, (device_id,))
+
+        row = cur.fetchone()
+        if row:
+            logging.info(f"Device data found: {row}")
+            # langsung return nilainya, bukan nama kolom
+            temp, hum, ammonia, ts, zone_offset = row
+            return temp, hum, ammonia, ts, zone_offset
+        else:
+            return None
+
+    except Exception as e:
+        logging.error(f"Error fetching device data: {e}")
+        return None
+
+    finally:
+        conn.close()
+ 
+
+def perform_prediction(data:dict, suhu, kelembaban, amoniak, iso_str, offset: int, testing_is_normal_prediction: bool):
+    logging.info("PERFORMING PREDICTION...")
+
+
+    logging.info(f"ISO STR: {iso_str}")
+    dt = pd.to_datetime(iso_str, utc=True)  # input UTC
+    
+    # Pastikan iso_str dibaca sebagai UTC-aware datetime
+    dt = pd.to_datetime(iso_str, utc=True)
+    logging.info(f"UTC datetime: {dt}")
+
+    # Tambahkan offset (misal +7 jam untuk WIB)
+    dt_local = dt + pd.Timedelta(hours=offset)
+    hour = dt_local.hour
+
+    session = get_session_type(hour)
+    dt_local = dt_local.tz_convert(get_timezone_name(offset))
+    logging.info(f"Converted datetime: {dt_local}, Hour: {hour}, Session: {session}")
+
+    # biasanya si ini normal
+    if(testing_is_normal_prediction):
+        logging.info("TESTING NORMAL PREDICTION SCENARIO...")
+        data_X = {
+        "Suhu": suhu,      
+        "Kelembaban": kelembaban,   
+        "Amoniak": amoniak,   
+        "Pakan": data['food'],       
+        "Minum": data['drink'],          
+        "Bobot": data['weight'],          
+        "Populasi": data['current_population'],      
+        "Luas Kandang": data['cage_area'],  
+        "Hour": hour,            
+        "Session": session
+    }
+
+    else:    
+        logging.info("TESTING ABNORMAL PREDICTION SCENARIO...")
+        data_X = {
+        "Suhu": 60.0,            # benar-benar panas
+        "Kelembaban": 0.0,       # sangat kering
+        "Amoniak": 100.0,         # sangat tinggi
+        "Pakan": 0.0,            # tidak makan
+        "Minum": 0.0,            # tidak minum
+        "Bobot": 0.2,            # terlalu ringan
+        "Populasi": 0,           # negatif/populasi hilang
+        "Luas Kandang": 0.0,     # kandang terlalu kecil
+        "Hour": hour,            # tetap
+        "Session": session       # tetap
+    }
+
+
+    dataFrame = pd.DataFrame([data_X])
+    logging.info("PERFORMING PREDICTION 1...")
+    logging.info(dataFrame)
+
+
+    # Convert to float
+    X = dataFrame.astype(float).values
+
+    # Load model
+    model_path = DirectoryHelper.get_model_dir('rf_timestamp')
+    model = joblib.load(model_path)
+
+    # Perform prediction
+    result = model.predict(X)
+
+    return determine_prediction_result(result[0]), session
+
+
+def get_session_type(hour):
+    if (hour > 4) and (hour <= 8):
+        return 0 #'Early morning'
+    elif (hour > 8) and (hour <= 12 ):
+        return 1 #'Morning'
+    elif (hour > 12) and (hour <= 16):
+        return 2 #'Noon'
+    elif (hour > 16) and (hour <= 20):
+        return 3 #'Eve'
+    elif (hour > 20) and (hour <= 24):
+        return 4 #'Night'
+    elif (hour <= 4):
+        return 5 #'Late Night'
+    
+
+def determine_prediction_result(prediction):
+    if int(prediction) == 0:
+        return 'normal'
+    elif int(prediction) == 1:
+        return 'abnormal'
+    else:
+        return 'cannot predict'
+    
+
+def get_timezone_name(offset: int) -> str:
+    tz_map = {
+        7: "Asia/Jakarta",   # WIB
+        8: "Asia/Makassar",  # WITA
+        9: "Asia/Jayapura"   # WIT
+    }
+    return tz_map.get(offset, "Asia/Jakarta") 
 
