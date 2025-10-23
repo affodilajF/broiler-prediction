@@ -65,4 +65,39 @@ def now_with_offset_iso_dt(offset_str):
     return now
 
 
+def get_today_utc():
+    """
+    Mengembalikan datetime saat ini (YYYY-MM-DD HH:MM:SS) dalam UTC
+    """
+    now_utc = datetime.now(timezone.utc)
+    return now_utc
+
+
+
+def get_today_range_utc(offset_str: str):
+    # Parse offset string, misal "070" -> 7
+    hours = int(offset_str[:3])
+    local_tz = timezone(timedelta(hours=hours))
+
+    # sekarang UTC
+    now_utc = datetime.now(timezone.utc)
+
+    # sekarang di zona lokal
+    now_local = now_utc.astimezone(local_tz)
+
+    # ambil tanggal hari ini di lokal
+    today_local = now_local.date()
+
+    # mulai & akhir hari lokal
+    start_of_day_local = datetime.combine(today_local, datetime.min.time(), tzinfo=local_tz)
+    end_of_day_local   = datetime.combine(today_local, datetime.max.time(), tzinfo=local_tz)
+
+    # konversi ke UTC
+    start_utc = start_of_day_local.astimezone(timezone.utc)
+    end_utc   = end_of_day_local.astimezone(timezone.utc)
+
+    return start_utc, end_utc
+
+
+
 
