@@ -1,3 +1,4 @@
+from email.mime import base
 import paho.mqtt.client as mqtt
 import logging
 import json
@@ -54,7 +55,7 @@ class MQTTClient:
         if result.rc != 0:
             logger.error(f"Failed to publish message to {topic}")
         else:
-            logger.info(f"Published message to {topic}")
+            logger.info(f"WOIIIIIIIS Published message to {topic} {message}")
 
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
@@ -71,7 +72,7 @@ class MQTTClient:
     def on_message(self, client, userdata, msg):
         topic = msg.topic
         payload_raw = msg.payload.decode()
-        logger.info(f"Received message: {topic} = {payload_raw}")
+        logger.info(f"✅ Received message: {topic} = {payload_raw}")
 
         try:
             payload = json.loads(payload_raw)
@@ -86,13 +87,14 @@ class MQTTClient:
         
         handler = None
         base = parts[2]
-        if base == "status":
+
+        if base == iot_status.split('/')[2]:
             handler = IoTController.insert_device_status
-            # handler(payload)
-        else:
+        elif base == iot_data.split('/')[2]:
             handler = IoTController.insert_device_data
 
-        handler(payload)
+        if handler:
+            handler(payload)
 
 
     def subscribe(self, topic, qos=1):
@@ -103,3 +105,7 @@ class MQTTClient:
 
 
 mqtt_client = MQTTClient()
+
+iot_data = "iot/broiler/data/{device_id}"
+iot_status = "iot/broiler/status/{device_id}"
+be_notif = "be/broiler/notif/{user_id}"
