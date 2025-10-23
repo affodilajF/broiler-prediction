@@ -5,8 +5,8 @@ from App.Controllers.Auth import AuthController
 sys.path.append(os.getcwd())
 
 # import local libraries
-# from App.Controllers.API import ApiController, CageController, DailyActivityController, IoTController
-from App.Controllers.API import ApiController, CageController, DailyActivityController
+from App.Controllers.API import ApiController, CageController, DailyActivityController, IoTController, NotificationController
+# from App.Controllers.API import ApiController, CageController, DailyActivityController
 
 # get all required libraries
 from flask import Blueprint, jsonify, request
@@ -204,6 +204,20 @@ def get_cages():
         return jsonify({"response": response, "messages": "success"}), 200
     except Exception as e:
         return jsonify({"response": str(e), "messages": "Something is Wrong!"}), 500
+
+
+@api.route('/get-cages-v2', methods=['GET'])
+@verify_token
+def get_cages_v2():
+    try:
+        firebase_id = request.user['uid']
+        offset_str = request.headers.get("X-User-Offset", "+00:00")
+        response = CageController.get_cage_data_v2(firebase_id=firebase_id, offset_str=offset_str)
+        logging.info(f"Offset string from header: {offset_str}")
+
+        return jsonify({"response": response, "messages": "success"}), 200
+    except Exception as e:
+        return jsonify({"response": str(e), "messages": "Something is Wrong!"}), 500
     
 
 @api.route('/activate-cage', methods=['POST'])
@@ -265,43 +279,101 @@ def add_daily_activity():
     except Exception as e:
         return jsonify({"response": str(e), "messages": "Something is Wrong!"}), 500
     
- 
-# @api.route('/check-model-pred', methods=['POST'])
-# def check_model():
-#     try:
-#         suhu = float(request.json.get('suhu'))
-#         kelembaban = float(request.json.get('kelembaban'))
-#         amoniak = float(request.json.get('amoniak'))
-#         unix_ts = int(request.json.get('unix_ts'))
+@api.route('/get-notif-history', methods=['GET'])
+@verify_token
+def get_notif_history():
+    try:
+        firebase_id = request.user['uid']
+        response = NotificationController.get_notification_history(
+            firebase_id=firebase_id,
+            offset_str=request.headers.get("X-User-Offset", "+00:00")
+        )
+        return jsonify({
+            "response": response,
+            "messages": "success"
+        }), 200  
+    except APIError as e:
+        return jsonify(e.to_dict()), e.status_code
 
-#         result = IoTController.perform_prediction(suhu, kelembaban, amoniak, unix_ts)
+    except Exception as e:
+        return jsonify({"response": str(e), "messages": "Something is Wrong!"}), 500
+    
+@api.route('/update-read-status-notifications', methods=['POST'])
+@verify_token
+def update_read_status_notifications():
+    try:
+        notification_ids = request.json.get('notification_ids', [])
+        response = NotificationController.update_notification_status(
+            notification_ids=notification_ids
+        )
+        return jsonify({
+            "response": response,
+            "messages": "success"
+        }), 200  
+    except APIError as e:
+        return jsonify(e.to_dict()), e.status_code
 
-#         return jsonify({
-#             'status': 'success',
-#             'prediction': result
-#         })
+    except Exception as e:
+        return jsonify({"response": str(e), "messages": "Something is Wrong!"}), 500
+    
+@api.route('/check-model-pred', methods=['POST'])
+def check_model():
+    try:
+        suhu = float(request.json.get('suhu'))
+        kelembaban = float(request.json.get('kelembaban'))
+        amoniak = float(request.json.get('amoniak'))
+        unix_ts = int(request.json.get('unix_ts'))
 
-#     except Exception as e:
-#         return jsonify({
-#             'status': 'error',
-#             'message': str(e)
-#         }), 400
+        result = IoTController.perform_prediction(suhu, kelembaban, amoniak, unix_ts)
+
+        return jsonify({
+            'status': 'success',
+            'prediction': result
+        })
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 400
     
 
-# @api.route('/run-model-now', methods=['GET'])
-# def run_model_now():
-#     try:
-#         result = IoTController.perform_prediction_and_store(
-#             offset_str=request.headers.get("X-User-Offset", "+00:00")
-#         )
+@api.route('/run-model-now', methods=['GET'])
+def run_model_now():
+    try:
+        result = IoTController.perform_prediction_and_store(
+            offset_str=request.headers.get("X-User-Offset", "+00:00"),
+            testing_is_normal_prediction=True
+        )
 
-#         return jsonify({
-#             'status': 'success',
-#             'message': 'Model run successfully' if result else 'Model run failed'
-#         })
+        return jsonify({
+            'status': 'success',
+            'message': 'Model run successfully' if result else 'Model run failed'
+        })
 
-#     except Exception as e:
-#         return jsonify({
-#             'status': 'error',
-#             'message': str(e)
-#         }), 400
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 400
+    
+
+@api.route('/run-model-now-abnormal', methods=['GET'])
+def run_model_now_abnormal():
+    try:
+        result = IoTController.perform_prediction_and_store(
+            offset_str=request.headers.get("X-User-Offset", "+00:00"),
+            testing_is_normal_prediction=False
+        )
+
+        return jsonify({
+            'status': 'success',
+            'message': 'Model run successfully' if result else 'Model run failed'
+        })
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 400
+
