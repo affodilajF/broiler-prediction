@@ -60,12 +60,14 @@ def add_daily_activity(cage_id, dailyactivity_date, food, drink, weight, death, 
         # validasi apakah date_utc > today
         if local_dt > now_dt:
             raise BadRequestError(
-                f"Date {dailyactivity_date} cannot be in the future"
+                # f"Date {dailyactivity_date} cannot be in the future"
+                f"Penambahan informasi harian tidak dapat dilakukan untuk tanggal di masa depan."
             )
         # Validasi apakah date_utc >= date_activated
         if date_utc < date_activated:
             raise BadRequestError(
-                f"Date {date_utc.date()} is before cage activation date {date_activated.date()}"
+                # f"Date {date_utc.date()} is before cage activation date {date_activated.date()}"
+                f"Penambahan informasi harian hanya dapat dilakukan setelah tanggal aktivasi."
             )
 
         # Cek apakah date_utc sudah ada di daily_activity
@@ -80,7 +82,9 @@ def add_daily_activity(cage_id, dailyactivity_date, food, drink, weight, death, 
         
         if exists:
             raise BadRequestError(
-                f"Data for date {dailyactivity_date} already exists in daily_activity"
+                # f"Data for date {dailyactivity_date} already exists in daily_activity"
+                # f"Data untuk tanggal {dailyactivity_date} sudah ada."
+                f"Informasi harian untuk tanggal {dailyactivity_date} sudah ditambahkan sebelumnya."
             )
 
         # ambil current_population
@@ -91,7 +95,12 @@ def add_daily_activity(cage_id, dailyactivity_date, food, drink, weight, death, 
         result = cur.fetchone()
 
         current_population = result[0]
+        if death > current_population:
+            raise BadRequestError(
+                f"Jumlah ayam mati ({death} ekor) melebihi populasi saat ini ({current_population} ekor)."
+            )
         new_current_population = current_population - death
+        logging.info(f"P current_population: {current_population}, new_current_population: {new_current_population}")
 
         # update cages
         cur.execute(f"""
