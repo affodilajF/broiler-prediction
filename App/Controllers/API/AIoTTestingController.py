@@ -243,7 +243,6 @@ def get_device_data(device_id):
  
 
 def perform_prediction(data:dict, suhu, kelembaban, amoniak, iso_str, offset: int, testing_is_normal_prediction: bool):
-    logging.info("PERFORMING TESTING PREDICTION...")
 
     dt = pd.to_datetime(iso_str, utc=True)  # input UTC
     
@@ -259,7 +258,6 @@ def perform_prediction(data:dict, suhu, kelembaban, amoniak, iso_str, offset: in
 
     if(testing_is_normal_prediction):
         # biasanya si ini normal 
-        logging.info("TESTING NORMAL PREDICTION SCENARIO...")
         data_X = {
         "Suhu": suhu,      
         "Kelembaban": kelembaban,   
@@ -274,7 +272,6 @@ def perform_prediction(data:dict, suhu, kelembaban, amoniak, iso_str, offset: in
     }
 
     else:    
-        logging.info("TESTING ABNORMAL PREDICTION SCENARIO...")
         data_X = {
         "Suhu": 60.0,            # benar-benar panas
         "Kelembaban": 0.0,       # sangat kering
@@ -290,7 +287,7 @@ def perform_prediction(data:dict, suhu, kelembaban, amoniak, iso_str, offset: in
 
 
     dataFrame = pd.DataFrame([data_X])
-    
+
     # Convert to float
     X = dataFrame.astype(float).values
 

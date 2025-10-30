@@ -72,7 +72,7 @@ class MQTTClient:
     def on_message(self, client, userdata, msg):
         topic = msg.topic
         payload_raw = msg.payload.decode()
-        logger.info(f"✅ Received message: {topic} = {payload_raw}")
+        # logger.info(f"✅ Received message: {topic} = {payload_raw}")
 
         try:
             payload = json.loads(payload_raw)

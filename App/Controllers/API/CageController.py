@@ -192,8 +192,6 @@ def get_cage_data_v2(firebase_id, offset_str="+00:00"):
 
     # ambil tanggal hari ini (UTC)
     start_today_utc, end_today_utc =  get_today_range_utc(offset_str)
-    logging.info(f"P start date (UTC): {start_today_utc}")
-    logging.info(f"P end date (UTC): {end_today_utc}")   
 
     for cage in cages:
         cage_id = cage[0]

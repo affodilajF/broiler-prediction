@@ -77,7 +77,6 @@ def insert_device_data(payload):
         ))
 
         conn.commit()
-        logging.info(f"✅ Device data inserted successfully for device {device_id} {ammonia} {hum} {temp}.")
 
     except Exception as e:
         conn.rollback()
@@ -88,9 +87,7 @@ def insert_device_data(payload):
 
 
 def perform_prediction_and_store(today_date_utc):
-    start_today, end_today =  get_today_range_for_wib(today_date_utc)
-    logging.info(f"P start date (UTC): {start_today}")
-    logging.info(f"P end date (UTC): {end_today}")    
+    start_today, end_today =  get_today_range_for_wib(today_date_utc)  
 
     conn = DatabaseHelper.connect()
     try:
@@ -199,7 +196,6 @@ def store_successful_prediction(data:dict, prediction_result: str, temp, hum, am
             result = [row[0] for row in cur.fetchall()]  # list semua firebase_id
 
             for user_firebase_id in result:
-                logging.info(f"User firebase_id: {user_firebase_id}")
                 # insert ke log_notification
                 cur.execute(f"""
                     insert into {os.getenv('DATABASE_NAME')}."broiler_app"."log_notifications"
@@ -216,7 +212,7 @@ def store_successful_prediction(data:dict, prediction_result: str, temp, hum, am
                 ))
 
                 # publish mqtt notification 
-                logging.info(f" Publishing MQTT notification to {user_firebase_id}")
+                logging.info(f"✅ Publishing MQTT notification to {user_firebase_id}")
                 be_notif_topic = be_notif.replace("{user_id}", user_firebase_id) 
                 payload = {
                     "cage_name": data['cage_name'],
@@ -238,7 +234,6 @@ def store_failed_prediction(data:dict, error: int):
     # 1 -> no daily activity data
     # 2 -> device offline
     conn = DatabaseHelper.connect()
-    logging.info(f"storing cage {data['cage_id']} due to missing daily activity data.")
     try:
         cur = conn.cursor()
         broiler_prediction_id = str(uuid.uuid4())
@@ -252,7 +247,7 @@ def store_failed_prediction(data:dict, error: int):
         ))
 
         conn.commit()
-        logging.info("✅ Log notification inserted successfully.")
+
 
     except Exception as e:
         conn.rollback()
@@ -298,7 +293,6 @@ def get_device_data(device_id):
 
         row = cur.fetchone()
         if row:
-            logging.info(f"Device data found: {row}")
             # langsung return nilainya, bukan nama kolom
             temp, hum, ammonia, ts, zone_offset = row
             return temp, hum, ammonia, ts, zone_offset
@@ -316,13 +310,10 @@ def get_device_data(device_id):
 def perform_prediction(data:dict, suhu, kelembaban, amoniak, iso_str, offset: int):
     logging.info("PERFORMING PREDICTION...")
 
-
-    logging.info(f"ISO STR: {iso_str}")
     dt = pd.to_datetime(iso_str, utc=True)  # input UTC
     
     # Pastikan iso_str dibaca sebagai UTC-aware datetime
     dt = pd.to_datetime(iso_str, utc=True)
-    logging.info(f"UTC datetime: {dt}")
 
     # Tambahkan offset (misal +7 jam untuk WIB)
     dt_local = dt + pd.Timedelta(hours=offset)
@@ -330,7 +321,6 @@ def perform_prediction(data:dict, suhu, kelembaban, amoniak, iso_str, offset: in
 
     session = get_session_type(hour)
     dt_local = dt_local.tz_convert(get_timezone_name(offset))
-    logging.info(f"Converted datetime: {dt_local}, Hour: {hour}, Session: {session}")
 
     data_X = {
         "Suhu": suhu,      
@@ -346,9 +336,6 @@ def perform_prediction(data:dict, suhu, kelembaban, amoniak, iso_str, offset: in
     }
 
     dataFrame = pd.DataFrame([data_X])
-    logging.info("PERFORMING PREDICTION 1...")
-    logging.info(dataFrame)
-
 
     # Convert to float
     X = dataFrame.astype(float).values

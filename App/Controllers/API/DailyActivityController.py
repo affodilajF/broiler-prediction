@@ -100,8 +100,7 @@ def add_daily_activity(cage_id, dailyactivity_date, food, drink, weight, death, 
                 f"Jumlah ayam mati ({death} ekor) melebihi populasi saat ini ({current_population} ekor)."
             )
         new_current_population = current_population - death
-        logging.info(f"P current_population: {current_population}, new_current_population: {new_current_population}")
-
+        
         # update cages
         cur.execute(f"""
             update {os.getenv('DATABASE_NAME')}."broiler_app"."cages"

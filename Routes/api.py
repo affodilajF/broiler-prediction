@@ -199,7 +199,6 @@ def get_cages():
         firebase_id = request.user['uid']
         offset_str = request.headers.get("X-User-Offset", "+00:00")
         response = CageController.get_cage_data(firebase_id=firebase_id, offset_str=offset_str)
-        logging.info(f"Offset string from header: {offset_str}")
 
         return jsonify({"response": response, "messages": "success"}), 200
     except Exception as e:
@@ -213,8 +212,7 @@ def get_cages_v2():
         firebase_id = request.user['uid']
         offset_str = request.headers.get("X-User-Offset", "+00:00")
         response = CageController.get_cage_data_v2(firebase_id=firebase_id, offset_str=offset_str)
-        logging.info(f"Offset string from header: {offset_str}")
-
+        
         return jsonify({"response": response, "messages": "success"}), 200
     except Exception as e:
         return jsonify({"response": str(e), "messages": "Something is Wrong!"}), 500
