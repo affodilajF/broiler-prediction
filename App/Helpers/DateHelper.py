@@ -98,6 +98,11 @@ def get_today_range_utc(offset_str: str):
 
     return start_utc, end_utc
 
+def get_today_range_for_wib(today_date_utc):
+    WIB_OFFSET = timedelta(hours=7)
+    start_wib = datetime.combine(today_date_utc, datetime.min.time()) - WIB_OFFSET
+    end_wib = datetime.combine(today_date_utc, datetime.max.time()) - WIB_OFFSET
+    return start_wib.replace(tzinfo=timezone.utc), end_wib.replace(tzinfo=timezone.utc)
 
 
 

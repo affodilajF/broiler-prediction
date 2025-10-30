@@ -5,7 +5,7 @@ from App.Controllers.Auth import AuthController
 sys.path.append(os.getcwd())
 
 # import local libraries
-from App.Controllers.API import ApiController, CageController, DailyActivityController, IoTController, NotificationController
+from App.Controllers.API import ApiController, CageController, DailyActivityController, IoTController, NotificationController, AIoTTestingController
 # from App.Controllers.API import ApiController, CageController, DailyActivityController
 
 # get all required libraries
@@ -338,10 +338,11 @@ def check_model():
         }), 400
     
 
+# Testing endpoint to run model immediately (normal prediction)
 @api.route('/run-model-now', methods=['GET'])
 def run_model_now():
     try:
-        result = IoTController.perform_prediction_and_store(
+        result = AIoTTestingController.perform_prediction_and_store(
             offset_str=request.headers.get("X-User-Offset", "+00:00"),
             testing_is_normal_prediction=True
         )
@@ -358,10 +359,11 @@ def run_model_now():
         }), 400
     
 
+# Testing endpoint to run model immediately (abnormal prediction)
 @api.route('/run-model-now-abnormal', methods=['GET'])
 def run_model_now_abnormal():
     try:
-        result = IoTController.perform_prediction_and_store(
+        result = AIoTTestingController.perform_prediction_and_store(
             offset_str=request.headers.get("X-User-Offset", "+00:00"),
             testing_is_normal_prediction=False
         )

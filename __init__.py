@@ -1,9 +1,9 @@
 import os
+import sys
 from flask import Flask, jsonify, request
 import firebase_admin
 from firebase_admin import credentials, auth
 from App.Middleware.VerifyToken import verify_token
-
 
 # import helper
 from App.Helpers import DirectoryHelper
@@ -27,12 +27,19 @@ app = Flask(
     static_folder=working_dir['public_dir']
 )
 
-# pilih config sesuai env
 APP_ENV = os.getenv("APP_ENV", "development")
 if APP_ENV == "production":
     app.config.from_object(ProductionConfig)
 else:
     app.config.from_object(DevelopmentConfig)
+
+# ---------------------
+# Shceduler init
+# ---------------------
+
+sys.path.append(os.getcwd())
+from App.Helpers.AIScheduler import init_scheduler
+init_scheduler()
 
 # ---------------------
 # Firebase Admin init
@@ -58,11 +65,11 @@ mqtt_client.subscribe("iot/broiler/#")
 app.register_blueprint(api_routes.api, url_prefix='/api')
 app.register_blueprint(web_routes.web, url_prefix='/')
 
-
 # ---------------------
 # Run flask application
 # ---------------------
 
 if __name__ == '__main__':
     print(f"Flask running in {APP_ENV} mode, debug={app.config['DEBUG']}")
-    app.run(host='0.0.0.0', debug=app.config['DEBUG'])
+    # use reloader = False means no hot-reload
+    app.run(host='0.0.0.0', debug=app.config['DEBUG'], use_reloader=False)
