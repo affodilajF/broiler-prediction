@@ -34,8 +34,8 @@ def start_scheduler():
     """Inisialisasi dan mulai scheduler"""
     scheduler = BackgroundScheduler(timezone="UTC")
     # Jadwal: setiap jam 02:00 dan 09:00 UTC
-    # scheduler.add_job(job, 'cron', hour='2,9', minute='00')
-    scheduler.add_job(job, 'cron', hour='2,7', minute='35')
+    scheduler.add_job(job, 'cron', hour='2,9', minute='00')
+    # scheduler.add_job(job, 'cron', hour='2,7', minute='35')
     scheduler.start()
     logging.info("APScheduler started: will run at 02:00 and 09:00 UTC daily.")
 
