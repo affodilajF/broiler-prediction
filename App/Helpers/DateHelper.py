@@ -22,8 +22,6 @@ def offset_to_utc(date_str, offset_str="+00:00"):
     date_utc = date_with_tz.astimezone(timezone.utc)
     return date_utc
 
-from datetime import datetime, timedelta, timezone
-
 def local_to_offset_iso(date_input, offset_str):
     """
     Terima date_input yang bisa string 'YYYY-MM-DD' atau datetime (naive),
@@ -73,6 +71,13 @@ def get_today_utc():
     return now_utc
 
 
+def get_today_range_for_wib():
+    today_date_utc = datetime.now(timezone.utc).date()
+    WIB_OFFSET = timedelta(hours=7)
+    start_wib = datetime.combine(today_date_utc, datetime.min.time()) - WIB_OFFSET
+    end_wib = datetime.combine(today_date_utc, datetime.max.time()) - WIB_OFFSET
+    return start_wib.replace(tzinfo=timezone.utc), end_wib.replace(tzinfo=timezone.utc)
+
 
 def get_today_range_utc(offset_str: str):
     # Parse offset string, misal "070" -> 7
@@ -97,12 +102,6 @@ def get_today_range_utc(offset_str: str):
     end_utc   = end_of_day_local.astimezone(timezone.utc)
 
     return start_utc, end_utc
-
-def get_today_range_for_wib(today_date_utc):
-    WIB_OFFSET = timedelta(hours=7)
-    start_wib = datetime.combine(today_date_utc, datetime.min.time()) - WIB_OFFSET
-    end_wib = datetime.combine(today_date_utc, datetime.max.time()) - WIB_OFFSET
-    return start_wib.replace(tzinfo=timezone.utc), end_wib.replace(tzinfo=timezone.utc)
 
 
 

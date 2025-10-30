@@ -1,4 +1,3 @@
-# import libraries
 import os
 import psycopg2
 
@@ -9,7 +8,6 @@ logging.basicConfig(level=logging.INFO)
 
 from App.Helpers.env_loader import load_environment
 load_environment()
-
 
 def connect_cockroach():
     username = os.getenv('database_user')
@@ -29,13 +27,6 @@ def connect_cockroach():
     except (psycopg2.DatabaseError, Exception) as error:
         print(error)
 
-        # conn = psycopg2.connect(
-        #     dbname   = os.getenv('server_db_name'),
-        #     user     = os.getenv('server_db_user'),
-        #     password = os.getenv('server_db_pass'),
-        #     host     = os.getenv('server_db_host'),
-        #     port     = os.getenv('server_db_port')
-        # )
 
 def connect():
     logging.info("Connecting to the database...")
@@ -56,31 +47,6 @@ def connect():
     except (psycopg2.DatabaseError, Exception) as error:
         logging.error(f"Database connection error: {error}")
         return None
-
-# def perform_database_query(query, values=None):
-#     try:
-#         # connect to database
-#         conn = connect()
-#         cur = conn.cursor()
-
-#         # execute query
-#         if values == None:
-#             cur.execute(query)
-#             data = cur.fetchall()
-
-#             return data
-            
-#         else:
-#             cur.execute(query, values)
-
-#         # Commit changes
-#         conn.commit()
-
-#     except Exception as e:
-#         logging.info("3 Perform : exception ...")
-#         logging.info(e)
-#         conn.rollback()
-#         print("An error has occurred: ", e)
 
 def perform_database_query(query, values=None):
     conn = None
@@ -141,9 +107,6 @@ def perform_database_query_v2(query, values=None):
             return None
 
     except Exception as e:
-        logging.error("Perform: exception ...")
-        logging.error(e)
-
         if conn:
             conn.rollback()
         raise
@@ -152,7 +115,3 @@ def perform_database_query_v2(query, values=None):
             cur.close()
         if conn:
             conn.close()
-
-def get_current_timestamp():
-    current_datetime = datetime.now()
-    return current_datetime.strftime("%Y-%m-%d %H:%M:%S")

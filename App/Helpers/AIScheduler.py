@@ -22,14 +22,13 @@ def init_scheduler():
 
 def job():
     """Job yang akan dipanggil jam 02:00 dan 09:00 UTC"""
-    today_date_utc = datetime.now(timezone.utc).date()
-    logging.info(f"Running perform_prediction_and_store for {today_date_utc} (UTC)")
+    logging.info(f"Running perform_prediction_and_store job at {datetime.now(timezone.utc).isoformat()}")
     
     try:
-        result = perform_prediction_and_store(today_date_utc)
-        logging.info(f"Prediction job completed for {today_date_utc}, result={result}")
+        result = perform_prediction_and_store()
+        logging.info(f"Prediction job completed, result={result}")
     except Exception as e:
-        logging.error(f"Error running prediction for {today_date_utc}: {e}", exc_info=True)
+        logging.error(f"Error running prediction: {e}", exc_info=True)
 
 def start_scheduler():
     """Inisialisasi dan mulai scheduler"""

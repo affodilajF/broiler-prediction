@@ -86,8 +86,8 @@ def insert_device_data(payload):
         conn.close()
 
 
-def perform_prediction_and_store(today_date_utc):
-    start_today, end_today =  get_today_range_for_wib(today_date_utc)  
+def perform_prediction_and_store():
+    start_today, end_today =  get_today_range_for_wib()
 
     conn = DatabaseHelper.connect()
     try:
