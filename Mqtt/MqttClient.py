@@ -7,7 +7,7 @@ import sys
 import os
 sys.path.append(os.getcwd())
 
-from App.Controllers.API import ApiController, CageController, DailyActivityController, IoTController
+from App.Controllers.API import  CageController, DailyActivityController, IoTController
 
 logger = logging.getLogger(__name__)
 
