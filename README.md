@@ -1,6 +1,6 @@
 # 🐔 Broiler Prediction System (Backend)
 This repository contains the **backend system** for the Broiler Prediction project — a system designed to predict broiler chicken growth performance and monitor environmental conditions using **AI** and **IoT** data.
-It integrates real-time sensor data collection, machine learning models, and mobile connectivity to support farm management and optimize production outcomes.
+It integrates real-time sensor data collection, machine learning model, and mobile connectivity to support farm management and optimize production outcomes.
 
 # 🧠 Project Overview
 The **Broiler Prediction System** assists poultry farms in monitoring key parameters such as temperature, humidity, and ammonia level, feed consumption, mortality, etc.
