@@ -1,44 +1,27 @@
-# Technologies
-This project is made by using Python Flask and are currently deployed in railway using docker image from this repo's package. For more detailed libraries used in this project please see the project's [requirements.txt](https://github.com/azaria-fairuz/broiler-prediction/blob/main/requirements.txt) file.
+# 🐔 Broiler Prediction System (Backend)
+This repository contains the **backend system** for the Broiler Prediction project — a system designed to predict broiler chicken growth performance and monitor environmental conditions using **AI** and **IoT** data.
+It integrates real-time sensor data collection, machine learning models, and mobile connectivity to support farm management and optimize production outcomes.
 
-# Usage
-To access this project through this link below:
-```bash
-https://broiler-prediction-production.up.railway.app/
-```
+# 🧠 Project Overview
+The **Broiler Prediction System** assists poultry farms in monitoring key parameters such as temperature, humidity, and ammonia level, feed consumption, mortality, etc.
+By leveraging IoT sensors and AI models, the system **detects potential anomalies and helps maintain optimal environmental conditions in broiler houses.**
 
-To access this project's API, please use the provided [postman for production documentation](https://github.com/azaria-fairuz/broiler-prediction/blob/main/postman_production.json) or access it manually by using the /api prefix:
-```bash
-https://broiler-prediction-production.up.railway.app/api
-```
+# 🏗️ System Architecture
+The backend connects **IoT devices, AI model, and mobile systems** in a unified architecture.
+Sensor data are transmitted through an **MQTT broker**, processed by the **Flask backend**, and analyzed by trained **machine learning model.** The provided API endpoint is used by mobile system.
 
-For more detailed description of the API endpoints, use the provided [postman for production documentation](https://github.com/azaria-fairuz/broiler-prediction/blob/main/postman_production.json). Here are some of the current available API endpoints:
-```bash
-# check API
-https://broiler-prediction-production.up.railway.app/api
+<img width="4432" height="2608" alt="Untitled(1)" src="https://github.com/user-attachments/assets/9ad7c0b2-3bef-4ac3-b1d3-ff31e92ebaae" />
 
-# perform prediction
-https://broiler-prediction-production.up.railway.app/api/predict
+# ⚙️ Features
+•	**Real-time Data Streaming** via MQTT protocol
 
-# get prediction data
-https://broiler-prediction-production.up.railway.app/api/get_prediction_data
-```
+•	**IoT Simulator** for testing and development environments (https://github.com/affodilajF/iot-virtual-device)
 
-# Requirements
-If you want to run this project in your local machine, there are a few things that you need to have before proceeding
-- Has docker installed on the local machine
-- Has internet connection
-- Has Access to the current database
+•	**Automated Machine Learning Prediction** scheduled at 09:00 and 16:00 WIB
 
-# Installation
+•	**Data Preprocessing & Storage** with SQL database 
 
-1. Run docker engine
-2. Open terminal and pull docker image:
-```bash
-docker pull ghcr.io/azaria-fairuz/azaria-fairuz/broiler-prediction:latest
-```
+•	**Auth** using Firebase Auth 
 
-3. From the same terminal, run docker image:
-```bash
-docker run -d -p 5000:5000 -e PYTHONUNBUFFERED=1 --name broiler-prediction ghcr.io/azaria-fairuz/azaria-fairuz/broiler-prediction:latest
-```
+•	**FlaskAPI-based API Endpoints**
+
