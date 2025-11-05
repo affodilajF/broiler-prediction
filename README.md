@@ -25,3 +25,5 @@ Sensor data are transmitted through an **MQTT broker**, processed by the **Flask
 
 •	**FlaskAPI-based API Endpoints**
 
+# 🧑‍💻 Authors  
+This backend was initially developed by **[@azaria-fairuz](https://github.com/azaria-fairuz)** for model development and web deployment, and later enhanced by **[@affodilajF](https://github.com/affodilajF)** to ensure full integration between AI, IoT, and mobile systems.
